@@ -2,33 +2,34 @@ import Foundation
 import MultipeerConnectivity
 import os.log
 
-final class MultipeerConnection: NSObject {
+final class MultipeerConnection: NSObject, MultipeerProtocol {
 
-    enum Mode: Int {
+    enum Mode: Int, CaseIterable {
         case receiver
         case transmitter
     }
 
     private let log = MultipeerKit.log(for: MultipeerConnection.self)
 
-    let mode: Mode
+    let modes: [Mode]
     let configuration: MultipeerConfiguration
     let me: MCPeerID
 
-    init(mode: Mode, configuration: MultipeerConfiguration = .default) {
-        self.mode = mode
+    init(modes: [Mode] = Mode.allCases, configuration: MultipeerConfiguration = .default) {
+        self.modes = modes
         self.configuration = configuration
         self.me = MCPeerID.fetchOrCreate(with: configuration)
     }
 
-    var didReceiveData: ((Data, MCPeerID) -> Void)?
+    var didReceiveData: ((Data, PeerName) -> Void)?
 
     func resume() {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        if mode == .receiver {
+        if modes.contains(.receiver) {
             advertiser.startAdvertisingPeer()
-        } else {
+        }
+        if modes.contains(.transmitter) {
             browser.startBrowsingForPeers()
         }
     }
@@ -36,9 +37,10 @@ final class MultipeerConnection: NSObject {
     func stop() {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        if mode == .receiver {
+        if modes.contains(.receiver) {
             advertiser.stopAdvertisingPeer()
-        } else {
+        }
+        if modes.contains(.transmitter) {
             browser.stopBrowsingForPeers()
         }
     }
@@ -68,6 +70,15 @@ final class MultipeerConnection: NSObject {
         return a
     }()
 
+    func broadcast(_ data: Data) throws {
+        guard !session.connectedPeers.isEmpty else {
+            os_log("Not broadcasting message: no connected peers", log: self.log, type: .error)
+            return
+        }
+
+        try session.send(data, toPeers: session.connectedPeers, with: .reliable)
+    }
+
 }
 
 // MARK: - Session delegate
@@ -81,7 +92,7 @@ extension MultipeerConnection: MCSessionDelegate {
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        didReceiveData?(data, peerID)
+        didReceiveData?(data, peerID.displayName)
     }
 
     func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
@@ -104,6 +115,9 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
 
     func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) {
         os_log("%{public}@", log: log, type: .debug, #function)
+
+        #warning("TODO: Add public API that can list/observe peers and customize invitation")
+        browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10.0)
     }
 
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {

@@ -14,7 +14,7 @@ public struct MultipeerConfiguration {
     }
 
     public static let `default` = MultipeerConfiguration(
-        serviceType: "MultipeerKit",
+        serviceType: "MKSVC",
         peerName: MCPeerID.defaultDisplayName,
         defaults: .standard
     )

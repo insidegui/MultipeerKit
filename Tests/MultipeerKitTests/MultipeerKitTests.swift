@@ -1,15 +1,55 @@
 import XCTest
 @testable import MultipeerKit
 
+fileprivate extension MultipeerTransceiver {
+    var mockConnection: MockMultipeerConnection {
+        connection as! MockMultipeerConnection
+    }
+}
+
+fileprivate struct TestPayload: Hashable, Codable {
+    let n: Int
+}
+
 final class MultipeerKitTests: XCTestCase {
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(MultipeerKit().text, "Hello, World!")
+
+    private func makeMockTransceiver() -> MultipeerTransceiver {
+        MultipeerTransceiver(connection: MockMultipeerConnection())
+    }
+
+    func testCallingResumeResumesConnection() {
+        let mock = makeMockTransceiver()
+        mock.resume()
+        XCTAssertEqual(mock.mockConnection.isRunning, true)
+    }
+
+    func testCallingStopStopsConnection() {
+        let mock = makeMockTransceiver()
+        mock.resume()
+        mock.stop()
+        XCTAssertEqual(mock.mockConnection.isRunning, false)
+    }
+
+    func testReceivingCustomPayload() {
+        let mock = makeMockTransceiver()
+        let tsPayload = TestPayload(n: 42)
+
+        let expect = XCTestExpectation(description: "Receive payload")
+
+        mock.receive(TestPayload.self) { p in
+            XCTAssertEqual(p, tsPayload)
+
+            expect.fulfill()
+        }
+
+        mock.broadcast(tsPayload)
+
+        wait(for: [expect], timeout: 2)
     }
 
     static var allTests = [
-        ("testExample", testExample),
+        ("testCallingResumeResumesConnection", testCallingResumeResumesConnection),
+        ("testCallingStopStopsConnection", testCallingStopStopsConnection),
+        ("testReceivingCustomPayload", testReceivingCustomPayload),
     ]
 }
