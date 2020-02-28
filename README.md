@@ -6,7 +6,7 @@ A high-level abstraction built on top of the MultipeerConnectivity framework, wh
 
 The main class in this library is `MultipeerTransceiver`, which does both the sending and receiving aspects of the multipeer communication.
 
-MultipeerKit can transmit and receive anything that conform to the `Codable` protocol, which makes it easy for you to define your own message types.
+MultipeerKit can transmit and receive anything that conforms to the `Codable` protocol, which makes it easy for you to define your own message types.
 
 ```swift
 // Create a transceiver (make sure you store it somewhere, like a property)

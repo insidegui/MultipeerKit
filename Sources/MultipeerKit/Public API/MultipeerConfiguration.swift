@@ -8,6 +8,8 @@ public struct MultipeerConfiguration {
     public let defaults: UserDefaults
 
     public init(serviceType: String, peerName: String, defaults: UserDefaults) {
+        precondition(peerName.utf8.count <= 63, "peerName can't be longer than 63 bytes")
+
         self.serviceType = serviceType
         self.peerName = peerName
         self.defaults = defaults

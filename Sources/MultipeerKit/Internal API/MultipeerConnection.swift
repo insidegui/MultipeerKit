@@ -22,6 +22,8 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     }
 
     var didReceiveData: ((Data, PeerName) -> Void)?
+    var didFindPeer: ((Peer) -> Void)?
+    var didLosePeer: ((Peer) -> Void)?
 
     func resume() {
         os_log("%{public}@", log: log, type: .debug, #function)
@@ -116,12 +118,28 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
     func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        #warning("TODO: Add public API that can list/observe peers and customize invitation")
+        do {
+            let peer = try Peer(peer: peerID)
+
+            didFindPeer?(peer)
+        } catch {
+            os_log("Failed to initialize peer based on peer ID %@: %{public}@", log: self.log, type: .error, String(describing: peerID), String(describing: error))
+        }
+
+        #warning("TODO: Add public API to customize invitation")
         browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10.0)
     }
 
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
         os_log("%{public}@", log: log, type: .debug, #function)
+
+        do {
+            let peer = try Peer(peer: peerID)
+
+            didLosePeer?(peer)
+        } catch {
+            os_log("Failed to initialize peer based on lost peer ID %@: %{public}@", log: self.log, type: .error, String(describing: peerID), String(describing: error))
+        }
     }
 
 }

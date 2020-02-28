@@ -8,6 +8,18 @@ public final class MultipeerTransceiver {
 
     let connection: MultipeerProtocol
 
+    public var availablePeersDidChange: ([Peer]) -> Void = { _ in }
+
+    public var availablePeers: [Peer] = [] {
+        didSet {
+            guard availablePeers != oldValue else { return }
+
+            DispatchQueue.main.async {
+                self.availablePeersDidChange(self.availablePeers)
+            }
+        }
+    }
+
     public init(configuration: MultipeerConfiguration = .default) {
         self.connection = MultipeerConnection(
             modes: MultipeerConnection.Mode.allCases,
@@ -26,6 +38,12 @@ public final class MultipeerTransceiver {
     private func configure(_ connection: MultipeerProtocol) {
         connection.didReceiveData = { [weak self] data, peer in
             self?.handleDataReceived(data, from: peer)
+        }
+        connection.didFindPeer = { [weak self] peer in
+            DispatchQueue.main.async { self?.handlePeerAdded(peer) }
+        }
+        connection.didLosePeer = { [weak self] peer in
+            DispatchQueue.main.async { self?.handlePeerRemoved(peer) }
         }
     }
 
@@ -63,6 +81,18 @@ public final class MultipeerTransceiver {
         } catch {
             os_log("Failed to decode message: %{public}@", log: self.log, type: .error, String(describing: error))
         }
+    }
+
+    private func handlePeerAdded(_ peer: Peer) {
+        guard !availablePeers.contains(peer) else { return }
+
+        availablePeers.append(peer)
+    }
+
+    private func handlePeerRemoved(_ peer: Peer) {
+        guard let idx = availablePeers.firstIndex(of: peer) else { return }
+
+        availablePeers.remove(at: idx)
     }
 
 }

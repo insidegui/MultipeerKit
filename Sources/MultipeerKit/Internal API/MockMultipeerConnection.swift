@@ -3,6 +3,8 @@ import Foundation
 final class MockMultipeerConnection: MultipeerProtocol {
 
     var didReceiveData: ((Data, PeerName) -> Void)?
+    var didFindPeer: ((Peer) -> Void)?
+    var didLosePeer: ((Peer) -> Void)?
 
     var isRunning = false
 
