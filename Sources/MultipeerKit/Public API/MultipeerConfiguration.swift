@@ -3,6 +3,11 @@ import MultipeerConnectivity
 
 public struct MultipeerConfiguration {
 
+    public enum Invitation {
+        case automatic
+        case custom((Peer) -> (context: Data, timeout: TimeInterval)?)
+    }
+
     public struct Security {
 
         public let identity: [Any]?
@@ -19,11 +24,13 @@ public struct MultipeerConfiguration {
     public var peerName: String
     public var defaults: UserDefaults
     public var security: Security
+    public var invitation: Invitation
 
     public init(serviceType: String,
                 peerName: String,
                 defaults: UserDefaults,
-                security: Security)
+                security: Security,
+                invitation: Invitation)
     {
         precondition(peerName.utf8.count <= 63, "peerName can't be longer than 63 bytes")
 
@@ -31,13 +38,15 @@ public struct MultipeerConfiguration {
         self.peerName = peerName
         self.defaults = defaults
         self.security = security
+        self.invitation = invitation
     }
 
     public static let `default` = MultipeerConfiguration(
         serviceType: "MKSVC",
         peerName: MCPeerID.defaultDisplayName,
         defaults: .standard,
-        security: .default
+        security: .default,
+        invitation: .automatic
     )
 
 }

@@ -134,12 +134,26 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
             discoveredPeers[peerID] = peer
 
             didFindPeer?(peer)
+
+            switch configuration.invitation {
+            case .automatic:
+                browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10.0)
+            case .custom(let inviter):
+                guard let invite = inviter(peer) else {
+                    os_log("Custom invite not sent for peer %@", log: self.log, type: .error, String(describing: peer))
+                    return
+                }
+
+                browser.invitePeer(
+                    peerID,
+                    to: session,
+                    withContext: invite.context,
+                    timeout: invite.timeout
+                )
+            }
         } catch {
             os_log("Failed to initialize peer based on peer ID %@: %{public}@", log: self.log, type: .error, String(describing: peerID), String(describing: error))
         }
-
-        #warning("TODO: Add public API to customize invitation")
-        browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10.0)
     }
 
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
