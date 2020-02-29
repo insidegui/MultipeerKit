@@ -2,7 +2,7 @@ import Foundation
 import MultipeerConnectivity
 import os.log
 
-public typealias InvitationCompletionHandler = (Result<Peer, Error>) -> Void
+public typealias InvitationCompletionHandler = (_ result: Result<Peer, Error>) -> Void
 
 public struct MultipeerError: LocalizedError {
     public var localizedDescription: String
@@ -118,15 +118,17 @@ extension MultipeerConnection: MCSessionDelegate {
 
         defer { invitationCompletionHandlers[peerID] = nil }
 
-        switch state {
-        case .connected:
-            handler(.success(peer))
-        case .notConnected:
-            handler(.failure(MultipeerError(localizedDescription: "Failed to connect to peer.")))
-        case .connecting:
-            break
-        @unknown default:
-            break
+        DispatchQueue.main.async {
+            switch state {
+            case .connected:
+                handler(.success(peer))
+            case .notConnected:
+                handler(.failure(MultipeerError(localizedDescription: "Failed to connect to peer.")))
+            case .connecting:
+                break
+            @unknown default:
+                break
+            }
         }
     }
 

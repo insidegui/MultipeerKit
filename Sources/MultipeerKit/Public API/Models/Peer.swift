@@ -2,12 +2,18 @@ import Foundation
 import MultipeerConnectivity.MCPeerID
 import CommonCrypto
 
+/// Represents a remote peer.
 public struct Peer: Hashable, Identifiable {
 
     let underlyingPeer: MCPeerID
 
+    /// The unique identifier for the peer.
     public let id: String
+
+    /// The peer's display name.
     public let name: String
+
+    /// Discovery info provided by the peer.
     public let discoveryInfo: [String: String]?
 
 }
