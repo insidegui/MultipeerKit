@@ -50,6 +50,12 @@ public final class MultipeerTransceiver {
         connection.didLosePeer = { [weak self] peer in
             DispatchQueue.main.async { self?.handlePeerRemoved(peer) }
         }
+        connection.didConnectToPeer = { [weak self] peer in
+            DispatchQueue.main.async { self?.handlePeerConnected(peer) }
+        }
+        connection.didDisconnectFromPeer = { [weak self] peer in
+            DispatchQueue.main.async { self?.handlePeerDisconnected(peer) }
+        }
     }
 
     /// Configures a new handler for a specific `Codable` type.
@@ -148,6 +154,22 @@ public final class MultipeerTransceiver {
         guard let idx = availablePeers.firstIndex(of: peer) else { return }
 
         availablePeers.remove(at: idx)
+    }
+
+    private func handlePeerConnected(_ peer: Peer) {
+        setConnected(true, on: peer)
+    }
+
+    private func handlePeerDisconnected(_ peer: Peer) {
+        setConnected(false, on: peer)
+    }
+
+    private func setConnected(_ connected: Bool, on peer: Peer) {
+        guard let idx = availablePeers.firstIndex(of: peer) else { return }
+
+        var mutablePeer = availablePeers[idx]
+        mutablePeer.isConnected = connected
+        availablePeers[idx] = mutablePeer
     }
 
 }

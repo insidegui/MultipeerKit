@@ -45,6 +45,10 @@ struct ContentView: View {
                 List {
                     ForEach(dataSource.availablePeers) { peer in
                         HStack {
+                            Circle()
+                                .frame(width: 12, height: 12)
+                                .foregroundColor(peer.isConnected ? .green : .gray)
+                            
                             Text(peer.name)
 
                             Spacer()

@@ -16,6 +16,9 @@ public struct Peer: Hashable, Identifiable {
     /// Discovery info provided by the peer.
     public let discoveryInfo: [String: String]?
 
+    /// `true` if we are currently connected to this peer.
+    public internal(set) var isConnected: Bool
+
 }
 
 extension Peer {
@@ -32,6 +35,7 @@ extension Peer {
         self.underlyingPeer = peer
         self.name = peer.displayName
         self.discoveryInfo = discoveryInfo
+        self.isConnected = false
     }
 
 }

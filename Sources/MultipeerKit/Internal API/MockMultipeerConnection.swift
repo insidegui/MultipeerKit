@@ -5,7 +5,9 @@ final class MockMultipeerConnection: MultipeerProtocol {
     var didReceiveData: ((Data, PeerName) -> Void)?
     var didFindPeer: ((Peer) -> Void)?
     var didLosePeer: ((Peer) -> Void)?
-
+    var didConnectToPeer: ((Peer) -> Void)?
+    var didDisconnectFromPeer: ((Peer) -> Void)?
+    
     var isRunning = false
 
     func resume() {

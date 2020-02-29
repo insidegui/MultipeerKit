@@ -30,6 +30,8 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     var didReceiveData: ((Data, PeerName) -> Void)?
     var didFindPeer: ((Peer) -> Void)?
     var didLosePeer: ((Peer) -> Void)?
+    var didConnectToPeer: ((Peer) -> Void)?
+    var didDisconnectFromPeer: ((Peer) -> Void)?
 
     private var discoveredPeers: [MCPeerID: Peer] = [:]
 
@@ -114,16 +116,22 @@ extension MultipeerConnection: MCSessionDelegate {
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        guard let peer = discoveredPeers[peerID], let handler = invitationCompletionHandlers[peerID] else { return }
+        guard let peer = discoveredPeers[peerID] else { return }
+
+        let handler = invitationCompletionHandlers[peerID]
 
         defer { invitationCompletionHandlers[peerID] = nil }
 
         DispatchQueue.main.async {
             switch state {
             case .connected:
-                handler(.success(peer))
+                handler?(.success(peer))
+
+                self.didConnectToPeer?(peer)
             case .notConnected:
-                handler(.failure(MultipeerError(localizedDescription: "Failed to connect to peer.")))
+                handler?(.failure(MultipeerError(localizedDescription: "Failed to connect to peer.")))
+
+                self.didDisconnectFromPeer?(peer)
             case .connecting:
                 break
             @unknown default:
