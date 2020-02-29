@@ -18,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		DD2DAF67240B04DF003D7A4D /* MultipeerKitExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MultipeerKitExample.entitlements; sourceTree = "<group>"; };
 		DDADA092240A83B300842749 /* MultipeerKitExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MultipeerKitExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDADA095240A83B300842749 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DDADA097240A83B300842749 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -63,6 +64,7 @@
 		DDADA094240A83B300842749 /* MultipeerKitExample */ = {
 			isa = PBXGroup;
 			children = (
+				DD2DAF67240B04DF003D7A4D /* MultipeerKitExample.entitlements */,
 				DDADA0AD240A844B00842749 /* ExamplePayload.swift */,
 				DDADA095240A83B300842749 /* AppDelegate.swift */,
 				DDADA097240A83B300842749 /* SceneDelegate.swift */,
@@ -303,17 +305,20 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MultipeerKitExample/MultipeerKitExample.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"MultipeerKitExample/Preview Content\"";
 				DEVELOPMENT_TEAM = 8C7439RJLG;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MultipeerKitExample/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = codes.rambo.MultipeerKitExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -323,17 +328,20 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MultipeerKitExample/MultipeerKitExample.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"MultipeerKitExample/Preview Content\"";
 				DEVELOPMENT_TEAM = 8C7439RJLG;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MultipeerKitExample/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = codes.rambo.MultipeerKitExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
