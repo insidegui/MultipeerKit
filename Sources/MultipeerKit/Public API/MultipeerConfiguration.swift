@@ -15,10 +15,10 @@ public struct MultipeerConfiguration {
 
     }
 
-    public let serviceType: String
-    public let peerName: String
-    public let defaults: UserDefaults
-    public let security: Security
+    public var serviceType: String
+    public var peerName: String
+    public var defaults: UserDefaults
+    public var security: Security
 
     public init(serviceType: String,
                 peerName: String,

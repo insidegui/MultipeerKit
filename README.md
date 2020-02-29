@@ -2,6 +2,12 @@
 
 A high-level abstraction built on top of the MultipeerConnectivity framework, which allows iOS, macOS and tvOS devices to exchange data between them over Wi-Fi networks, peer-to-peer Wi-Fi, and Bluetooth.
 
+## Sample app
+
+Check the example folder for a sample implementation.
+
+![Sample](../assets/demo.gif?raw=true)
+
 ## Usage
 
 The main class in this library is `MultipeerTransceiver`, which does both the sending and receiving aspects of the multipeer communication.
@@ -23,4 +29,18 @@ transceiver.receive(SomeCodableThing.self) { payload in
 // Broadcast message to peers
 let payload = SomeEncodableThing()
 transceiver.broadcast(payload)
+```
+
+## Integrating
+
+MultipeerKit is a Swift package, to use it in your project, add this to your `Package.swift` file:
+
+```swift
+let package = Package(
+    ...
+    dependencies: [
+        .package(url: "https://github.com/insidegui/MultipeerKit.git", from: "0.1.0")
+    ],
+    ...
+)
 ```
