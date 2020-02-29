@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "MultipeerKit",
     platforms: [
-        .macOS(.v10_15),
+        .macOS(.v10_14),
         .iOS(.v12),
         .tvOS(.v12)
     ],
