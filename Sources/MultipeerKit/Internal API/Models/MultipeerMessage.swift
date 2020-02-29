@@ -55,6 +55,10 @@ struct MultipeerMessage: Codable {
             return payload
         }
 
+        register(T.self, for: typeName)
+    }
+
+    static func register<T: Encodable>(_ type: T.Type, for typeName: String) {
         encoders[typeName] = { payload, container in
             try container.encode(payload as! T, forKey: .payload)
         }

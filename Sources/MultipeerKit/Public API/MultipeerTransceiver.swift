@@ -79,6 +79,8 @@ public final class MultipeerTransceiver {
     /// Sends a message to all connected peers.
     /// - Parameter payload: The payload to be sent.
     public func broadcast<T: Encodable>(_ payload: T) {
+        MultipeerMessage.register(T.self, for: String(describing: T.self))
+
         do {
             let message = MultipeerMessage(type: String(describing: T.self), payload: payload)
 
@@ -95,6 +97,8 @@ public final class MultipeerTransceiver {
     ///   - payload: The payload to be sent.
     ///   - peers: An array of peers to send the message to.
     public func send<T: Encodable>(_ payload: T, to peers: [Peer]) {
+        MultipeerMessage.register(T.self, for: String(describing: T.self))
+        
         do {
             let message = MultipeerMessage(type: String(describing: T.self), payload: payload)
 
