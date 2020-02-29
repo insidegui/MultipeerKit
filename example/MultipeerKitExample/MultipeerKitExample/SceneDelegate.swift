@@ -10,6 +10,7 @@ import UIKit
 import SwiftUI
 import MultipeerKit
 import UserNotifications
+import Security
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -18,6 +19,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private lazy var transceiver: MultipeerTransceiver = {
         var config = MultipeerConfiguration.default
         config.serviceType = "MPKitDemo"
+
+        config.security.encryptionPreference = .required
 
         let t = MultipeerTransceiver(configuration: config)
 
