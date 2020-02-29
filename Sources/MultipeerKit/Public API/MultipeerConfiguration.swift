@@ -20,6 +20,8 @@ public struct MultipeerConfiguration {
     /// Configures security-related aspects of the multipeer connection.
     public struct Security {
 
+        public typealias InvitationHandler = (Peer, Data?, (Bool) -> Void) -> Void
+
         /// An array of information that can be used to identify the peer to other nearby peers.
         ///
         /// The first object in this array should be a `SecIdentity` object that provides the local peer’s identity.
@@ -29,10 +31,10 @@ public struct MultipeerConfiguration {
         /// These certificates should be sent in certificate chain order.
         ///
         /// Check Apple's `MCSession` docs for more information.
-        public let identity: [Any]?
+        public var identity: [Any]?
 
         /// Configure the level of encryption to be used for communications.
-        public let encryptionPreference: MCEncryptionPreference
+        public var encryptionPreference: MCEncryptionPreference
 
         /// A custom closure to be used when handling invitations received by remote peers.
         ///
@@ -41,7 +43,16 @@ public struct MultipeerConfiguration {
         /// and a closure to be called with `true` to accept the invitation or `false` to reject it.
         ///
         /// The default implementation accepts all invitations.
-        public let invitationHandler: (Peer, Data?, (Bool) -> Void) -> Void
+        public var invitationHandler: InvitationHandler
+
+        public init(identity: [Any]?,
+                    encryptionPreference: MCEncryptionPreference,
+                    invitationHandler: @escaping InvitationHandler)
+        {
+            self.identity = identity
+            self.encryptionPreference = encryptionPreference
+            self.invitationHandler = invitationHandler
+        }
 
         /// The default security configuration, which has no identity, uses no encryption and accepts all invitations.
         public static let `default` = Security(identity: nil, encryptionPreference: .none, invitationHandler: { _, _, closure in
