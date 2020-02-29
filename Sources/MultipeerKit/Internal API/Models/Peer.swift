@@ -3,15 +3,18 @@ import MultipeerConnectivity.MCPeerID
 import CommonCrypto
 
 public struct Peer: Hashable, Identifiable {
+
     let underlyingPeer: MCPeerID
 
     public let id: String
     public let name: String
+    public let discoveryInfo: [String: String]?
+
 }
 
 extension Peer {
 
-    init(peer: MCPeerID) throws {
+    init(peer: MCPeerID, discoveryInfo: [String: String]?) throws {
         /**
          According to Apple's docs, every MCPeerID is unique, therefore encoding it
          and hashing the resulting data is a good way to generate an unique identifier
@@ -22,6 +25,7 @@ extension Peer {
 
         self.underlyingPeer = peer
         self.name = peer.displayName
+        self.discoveryInfo = discoveryInfo
     }
 
 }

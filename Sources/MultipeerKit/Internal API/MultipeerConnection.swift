@@ -25,6 +25,8 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     var didFindPeer: ((Peer) -> Void)?
     var didLosePeer: ((Peer) -> Void)?
 
+    private var discoveredPeers: [MCPeerID: Peer] = [:]
+
     func resume() {
         os_log("%{public}@", log: log, type: .debug, #function)
 
@@ -48,8 +50,11 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     }
 
     private lazy var session: MCSession = {
-        #warning("TODO: Allow customization of security identity and encryption preference")
-        let s = MCSession(peer: me, securityIdentity: nil, encryptionPreference: .none)
+        let s = MCSession(
+            peer: me,
+            securityIdentity: configuration.security.identity,
+            encryptionPreference: configuration.security.encryptionPreference
+        )
 
         s.delegate = self
 
@@ -124,7 +129,9 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
         os_log("%{public}@", log: log, type: .debug, #function)
 
         do {
-            let peer = try Peer(peer: peerID)
+            let peer = try Peer(peer: peerID, discoveryInfo: info)
+
+            discoveredPeers[peerID] = peer
 
             didFindPeer?(peer)
         } catch {
@@ -138,13 +145,11 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        do {
-            let peer = try Peer(peer: peerID)
+        guard let peer = discoveredPeers[peerID] else { return }
 
-            didLosePeer?(peer)
-        } catch {
-            os_log("Failed to initialize peer based on lost peer ID %@: %{public}@", log: self.log, type: .error, String(describing: peerID), String(describing: error))
-        }
+        didLosePeer?(peer)
+
+        discoveredPeers[peerID] = nil
     }
 
 }
@@ -156,9 +161,11 @@ extension MultipeerConnection: MCNearbyServiceAdvertiserDelegate {
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        #warning("TODO: Create public API for handling invitations, maybe with a specific Decodable type registered to handle the context that comes in")
+        guard let peer = discoveredPeers[peerID] else { return }
 
-        invitationHandler(true, session)
+        configuration.security.invitationHandler(peer, context, { decision in
+            invitationHandler(decision, decision ? session : nil)
+        })
     }
 
 }
