@@ -1,11 +1,18 @@
 import Foundation
 import MultipeerConnectivity
 
+/// Configures several aspects of the multipeer communication.
 public struct MultipeerConfiguration {
 
+    /// Defines how to handle inviting found peers to join our session.
     public enum Invitation {
+        /// When `.automatic` is used, all found peers will be immediately invited to join the session.
         case automatic
+        /// Use `.custom` when you want to control the invitation of new peers to your session,
+        /// but still invite them at the time of discovery.
         case custom((Peer) -> (context: Data, timeout: TimeInterval)?)
+        /// Use `.none` when you want to manually invite peers by calling `invite` in `MultipeerTransceiver`.
+        case none
     }
 
     public struct Security {

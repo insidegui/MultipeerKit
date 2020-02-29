@@ -2,6 +2,12 @@ import Foundation
 import MultipeerConnectivity
 import os.log
 
+public typealias InvitationCompletionHandler = (Result<Peer, Error>) -> Void
+
+public struct MultipeerError: LocalizedError {
+    public var localizedDescription: String
+}
+
 final class MultipeerConnection: NSObject, MultipeerProtocol {
 
     enum Mode: Int, CaseIterable {
@@ -91,6 +97,14 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
         try session.send(data, toPeers: ids, with: .reliable)
     }
 
+    private var invitationCompletionHandlers: [MCPeerID: InvitationCompletionHandler] = [:]
+
+    func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {
+        invitationCompletionHandlers[peer.underlyingPeer] = completion
+
+        browser.invitePeer(peer.underlyingPeer, to: session, withContext: context, timeout: timeout)
+    }
+
 }
 
 // MARK: - Session delegate
@@ -99,6 +113,21 @@ extension MultipeerConnection: MCSessionDelegate {
 
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         os_log("%{public}@", log: log, type: .debug, #function)
+
+        guard let peer = discoveredPeers[peerID], let handler = invitationCompletionHandlers[peerID] else { return }
+
+        defer { invitationCompletionHandlers[peerID] = nil }
+
+        switch state {
+        case .connected:
+            handler(.success(peer))
+        case .notConnected:
+            handler(.failure(MultipeerError(localizedDescription: "Failed to connect to peer.")))
+        case .connecting:
+            break
+        @unknown default:
+            break
+        }
     }
 
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
@@ -150,6 +179,9 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
                     withContext: invite.context,
                     timeout: invite.timeout
                 )
+            case .none:
+                os_log("Auto-invite disabled", log: self.log, type: .debug)
+                return
             }
         } catch {
             os_log("Failed to initialize peer based on peer ID %@: %{public}@", log: self.log, type: .error, String(describing: peerID), String(describing: error))

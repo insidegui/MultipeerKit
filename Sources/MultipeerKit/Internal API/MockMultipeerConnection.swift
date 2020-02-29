@@ -24,4 +24,8 @@ final class MockMultipeerConnection: MultipeerProtocol {
         
     }
 
+    func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {
+        
+    }
+
 }

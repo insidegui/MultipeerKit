@@ -95,6 +95,10 @@ public final class MultipeerTransceiver {
         }
     }
 
+    public func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {
+        connection.invite(peer, with: context, timeout: timeout, completion: completion)
+    }
+
     private func handlePeerAdded(_ peer: Peer) {
         guard !availablePeers.contains(peer) else { return }
 
