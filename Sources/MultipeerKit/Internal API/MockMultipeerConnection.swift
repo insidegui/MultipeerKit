@@ -20,4 +20,8 @@ final class MockMultipeerConnection: MultipeerProtocol {
         didReceiveData?(data, "MockPeer")
     }
 
+    func send(_ data: Data, to peers: [Peer]) throws {
+        
+    }
+
 }

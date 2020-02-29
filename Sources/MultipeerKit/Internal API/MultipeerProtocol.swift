@@ -12,5 +12,6 @@ protocol MultipeerProtocol: AnyObject {
     func stop()
 
     func broadcast(_ data: Data) throws
+    func send(_ data: Data, to peers: [Peer]) throws
 
 }

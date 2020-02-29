@@ -71,6 +71,18 @@ public final class MultipeerTransceiver {
         }
     }
 
+    public func send<T: Encodable>(_ payload: T, to peers: [Peer]) {
+        do {
+            let message = MultipeerMessage(type: String(describing: T.self), payload: payload)
+
+            let data = try JSONEncoder().encode(message)
+
+            try connection.send(data, to: peers)
+        } catch {
+            os_log("Failed to send payload %@: %{public}@", log: self.log, type: .error, String(describing: payload), String(describing: error))
+        }
+    }
+
     private func handleDataReceived(_ data: Data, from peer: PeerName) {
         os_log("%{public}@", log: log, type: .debug, #function)
 

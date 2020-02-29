@@ -81,6 +81,11 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
         try session.send(data, toPeers: session.connectedPeers, with: .reliable)
     }
 
+    func send(_ data: Data, to peers: [Peer]) throws {
+        let ids = peers.map { $0.underlyingPeer }
+        try session.send(data, toPeers: ids, with: .reliable)
+    }
+
 }
 
 // MARK: - Session delegate
