@@ -8,6 +8,7 @@ public final class MultipeerTransceiver {
     private let log = MultipeerKit.log(for: MultipeerTransceiver.self)
 
     let connection: MultipeerProtocol
+    let me: Peer?
 
     /// Called on the main queue when available peers have changed (new peers discovered or peers removed).
     public var availablePeersDidChange: ([Peer]) -> Void = { _ in }
@@ -26,17 +27,21 @@ public final class MultipeerTransceiver {
     /// Initializes a new transceiver.
     /// - Parameter configuration: The configuration, uses the default configuration if none specified.
     public init(configuration: MultipeerConfiguration = .default) {
-        self.connection = MultipeerConnection(
+        let connection = MultipeerConnection(
             modes: MultipeerConnection.Mode.allCases,
             configuration: configuration
         )
 
+        self.connection = connection
+        self.me = try? Peer(peer: connection.me, discoveryInfo: nil)
+        
         configure(connection)
     }
 
     init(connection: MultipeerProtocol) {
         self.connection = connection
-
+        self.me = nil
+        
         configure(connection)
     }
 
@@ -71,6 +76,10 @@ public final class MultipeerTransceiver {
     public func receive<T: Codable>(_ type: T.Type, using closure: @escaping (_ payload: T) -> Void) {
         MultipeerMessage.register(type, for: String(describing: type), closure: closure)
     }
+    
+    public func receive<T: Codable>(_ type: T.Type, using closure: @escaping (_ payload: T, _ peerID: PeerID, _ peerName: PeerName) -> Void) {
+        MultipeerMessage.register(type, for: String(describing: type), closure: closure)
+    }
 
     /// Resumes the transceiver, allowing this peer to be discovered and to discover remote peers.
     public func resume() {
@@ -88,7 +97,7 @@ public final class MultipeerTransceiver {
         MultipeerMessage.register(T.self, for: String(describing: T.self))
 
         do {
-            let message = MultipeerMessage(type: String(describing: T.self), payload: payload)
+            let message = MultipeerMessage(type: String(describing: T.self), payload: payload, peer: me)
 
             let data = try JSONEncoder().encode(message)
 
@@ -106,7 +115,7 @@ public final class MultipeerTransceiver {
         MultipeerMessage.register(T.self, for: String(describing: T.self))
         
         do {
-            let message = MultipeerMessage(type: String(describing: T.self), payload: payload)
+            let message = MultipeerMessage(type: String(describing: T.self), payload: payload, peer: me)
 
             let data = try JSONEncoder().encode(message)
 

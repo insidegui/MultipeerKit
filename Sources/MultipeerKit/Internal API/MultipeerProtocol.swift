@@ -1,6 +1,7 @@
 import Foundation
 
-typealias PeerName = String
+public typealias PeerName = String
+public typealias PeerID = String
 
 protocol MultipeerProtocol: AnyObject {
 
