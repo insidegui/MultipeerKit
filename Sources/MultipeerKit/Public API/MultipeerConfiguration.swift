@@ -12,7 +12,7 @@ public struct MultipeerConfiguration {
         case automatic
         /// Use `.custom` when you want to control the invitation of new peers to your session,
         /// but still invite them at the time of discovery.
-        case custom((Peer) -> (context: Data, timeout: TimeInterval)?)
+        case custom((Peer) throws -> (context: Data, timeout: TimeInterval)?)
         /// Use `.none` when you want to manually invite peers by calling `invite` in `MultipeerTransceiver`.
         case none
     }
