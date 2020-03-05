@@ -20,7 +20,7 @@ public struct MultipeerConfiguration {
     /// Configures security-related aspects of the multipeer connection.
     public struct Security {
 
-        public typealias InvitationHandler = (Peer, Data?, (Bool) -> Void) -> Void
+        public typealias InvitationHandler = (Peer, Data?, @escaping (Bool) -> Void) -> Void
 
         /// An array of information that can be used to identify the peer to other nearby peers.
         ///

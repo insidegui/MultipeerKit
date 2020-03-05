@@ -120,17 +120,15 @@ extension MultipeerConnection: MCSessionDelegate {
 
         let handler = invitationCompletionHandlers[peerID]
 
-        defer { invitationCompletionHandlers[peerID] = nil }
-
         DispatchQueue.main.async {
             switch state {
             case .connected:
                 handler?(.success(peer))
-
+                self.invitationCompletionHandlers[peerID] = nil
                 self.didConnectToPeer?(peer)
             case .notConnected:
                 handler?(.failure(MultipeerError(localizedDescription: "Failed to connect to peer.")))
-
+                self.invitationCompletionHandlers[peerID] = nil
                 self.didDisconnectFromPeer?(peer)
             case .connecting:
                 break
