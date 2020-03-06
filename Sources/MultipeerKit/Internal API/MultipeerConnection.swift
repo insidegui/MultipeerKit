@@ -218,7 +218,7 @@ extension MultipeerConnection: MCNearbyServiceAdvertiserDelegate {
         guard let peer = discoveredPeers[peerID] else { return }
 
         configuration.security.invitationHandler(peer, context, { decision in
-            invitationHandler(decision, decision ? session : nil)
+            invitationHandler(decision, decision ? self.session : nil)
         })
     }
 
