@@ -176,7 +176,7 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
             case .automatic:
                 browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10.0)
             case .custom(let inviter):
-                guard let invite = inviter(peer) else {
+                guard let invite = try inviter(peer) else {
                     os_log("Custom invite not sent for peer %@", log: self.log, type: .error, String(describing: peer))
                     return
                 }
@@ -217,7 +217,9 @@ extension MultipeerConnection: MCNearbyServiceAdvertiserDelegate {
 
         guard let peer = discoveredPeers[peerID] else { return }
 
-        configuration.security.invitationHandler(peer, context, { decision in
+        configuration.security.invitationHandler(peer, context, { [weak self] decision in
+            guard let self = self else { return }
+
             invitationHandler(decision, decision ? self.session : nil)
         })
     }
