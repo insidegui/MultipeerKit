@@ -1,5 +1,6 @@
 import Foundation
 
+@available(tvOS 13.0, *)
 @available(OSX 10.15, *)
 @available(iOS 13.0, *)
 /// This class can be used to monitor nearby peers in a reactive way,
