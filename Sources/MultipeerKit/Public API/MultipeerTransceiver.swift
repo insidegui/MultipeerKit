@@ -12,8 +12,14 @@ public final class MultipeerTransceiver {
     /// Called on the main queue when available peers have changed (new peers discovered or peers removed).
     public var availablePeersDidChange: ([Peer]) -> Void = { _ in }
 
+    /// Called on the main queue when a new peer discovered.
+    public var peerAdded: (Peer) -> Void = { _ in }
+
+    /// Called on the main queue when a peer removed.
+    public var peerRemoved: (Peer) -> Void = { _ in }
+
     /// All peers currently available for invitation, connection and data transmission.
-    public var availablePeers: [Peer] = [] {
+    public private(set) var availablePeers: [Peer] = [] {
         didSet {
             guard availablePeers != oldValue else { return }
 
@@ -148,12 +154,14 @@ public final class MultipeerTransceiver {
         guard !availablePeers.contains(peer) else { return }
 
         availablePeers.append(peer)
+        peerAdded(peer)
     }
 
     private func handlePeerRemoved(_ peer: Peer) {
         guard let idx = availablePeers.firstIndex(where: { $0.underlyingPeer == peer.underlyingPeer }) else { return }
 
         availablePeers.remove(at: idx)
+        peerRemoved(peer)
     }
 
     private func handlePeerConnected(_ peer: Peer) {
