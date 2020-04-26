@@ -31,7 +31,7 @@ let payload = SomeEncodableThing()
 transceiver.broadcast(payload)
 ```
 
-For more information on how to use MultipeerKit, check the Swift files in the Public API folder, I tried my best to document all important aspects of using the framework.
+For more information on how to use MultipeerKit, check out the [documentation](https://multipeerkit.rambo.codes).
 
 ## Integrating
 
