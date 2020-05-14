@@ -18,6 +18,11 @@ public final class MultipeerTransceiver {
     /// Called on the main queue when a peer removed.
     public var peerRemoved: (Peer) -> Void = { _ in }
 
+    /// The current device's peer id
+    public var localPeerId: String? {
+        return connection.getLocalPeerId()
+    }
+    
     /// All peers currently available for invitation, connection and data transmission.
     public private(set) var availablePeers: [Peer] = [] {
         didSet {

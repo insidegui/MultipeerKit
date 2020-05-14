@@ -106,6 +106,10 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
 
         browser.invitePeer(peer.underlyingPeer, to: session, withContext: context, timeout: timeout)
     }
+    
+    func getLocalPeerId() -> String? {
+        return try? Peer(peer: me, discoveryInfo: nil).id
+    }
 
 }
 
