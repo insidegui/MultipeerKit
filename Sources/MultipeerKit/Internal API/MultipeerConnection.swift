@@ -27,7 +27,7 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
         self.me = MCPeerID.fetchOrCreate(with: configuration)
     }
 
-    var didReceiveData: ((Data, PeerName) -> Void)?
+    var didReceiveData: ((Data, Peer) -> Void)?
     var didFindPeer: ((Peer) -> Void)?
     var didLosePeer: ((Peer) -> Void)?
     var didConnectToPeer: ((Peer) -> Void)?
@@ -145,7 +145,11 @@ extension MultipeerConnection: MCSessionDelegate {
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        didReceiveData?(data, peerID.displayName)
+        if let peer = try? Peer(peer: peerID, discoveryInfo: nil) {
+            didReceiveData?(data, peer)
+        } else {
+            os_log("Received data, but cannot create peer for %s", log: log, type: .error, #function, peerID.displayName)
+        }
     }
 
     func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {

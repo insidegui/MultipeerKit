@@ -24,10 +24,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let t = MultipeerTransceiver(configuration: config)
 
-        t.receive(ExamplePayload.self) { [weak self] payload in
+        t.receive(ExamplePayload.self) { [weak self] payload, peer in
             print("Got payload: \(payload)")
 
-            self?.notify(with: payload)
+            self?.notify(with: payload, peer: peer)
         }
 
         return t
@@ -37,9 +37,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         MultipeerDataSource(transceiver: transceiver)
     }()
 
-    private func notify(with payload: ExamplePayload) {
+    private func notify(with payload: ExamplePayload, peer: Peer) {
         let content = UNMutableNotificationContent()
-        content.body = payload.message
+        content.body = "\"\(payload.message)\" from \(peer.name)"
         let request = UNNotificationRequest(identifier: payload.message, content: content, trigger: nil)
         UNUserNotificationCenter.current().add(request) { _ in
 

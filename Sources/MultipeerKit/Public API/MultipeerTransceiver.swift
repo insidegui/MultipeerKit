@@ -74,12 +74,13 @@ public final class MultipeerTransceiver {
     ///   - type: The `Codable` type to receive.
     ///   - closure: The closure that will be called whenever a payload of the specified type is received.
     ///   - payload: The payload decoded from the remote message.
+    ///   - sender: The remote peer who sent the message.
     ///
     /// MultipeerKit communicates data between peers as JSON-encoded payloads which originate with
     /// `Codable` entities. You register a closure to handle each specific type of entity,
     /// and this closure is automatically called by the framework when a remote peer sends
     /// a message containing an entity that decodes to the specified type.
-    public func receive<T: Codable>(_ type: T.Type, using closure: @escaping (_ payload: T) -> Void) {
+    public func receive<T: Codable>(_ type: T.Type, using closure: @escaping (_ payload: T, _ sender: Peer) -> Void) {
         MultipeerMessage.register(type, for: String(describing: type), closure: closure)
     }
 
@@ -127,11 +128,13 @@ public final class MultipeerTransceiver {
         }
     }
 
-    private func handleDataReceived(_ data: Data, from peer: PeerName) {
+    private func handleDataReceived(_ data: Data, from peer: Peer) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
         do {
-            let message = try JSONDecoder().decode(MultipeerMessage.self, from: data)
+            let decoder = JSONDecoder()
+            decoder.userInfo[MultipeerMessage.senderUserInfoKey] = peer
+            let message = try decoder.decode(MultipeerMessage.self, from: data)
 
             os_log("Received message %@", log: self.log, type: .debug, String(describing: message))
         } catch {
