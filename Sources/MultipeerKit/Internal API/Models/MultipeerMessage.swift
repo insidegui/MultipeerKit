@@ -27,6 +27,8 @@
 import Foundation
 
 struct MultipeerMessage: Codable {
+    static let senderUserInfoKey = CodingUserInfoKey(rawValue: "sender")!
+    
     let type: String
     let payload: Any?
 
@@ -40,17 +42,17 @@ struct MultipeerMessage: Codable {
         case payload
     }
 
-    private typealias MessageDecoder = (KeyedDecodingContainer<CodingKeys>) throws -> Any
+    private typealias MessageDecoder = (KeyedDecodingContainer<CodingKeys>, Peer) throws -> Any
     private typealias MessageEncoder = (Any, inout KeyedEncodingContainer<CodingKeys>) throws -> Void
 
     private static var decoders: [String: MessageDecoder] = [:]
     private static var encoders: [String: MessageEncoder] = [:]
 
-    static func register<T: Codable>(_ type: T.Type, for typeName: String, closure: @escaping (T) -> Void) {
-        decoders[typeName] = { container in
+    static func register<T: Codable>(_ type: T.Type, for typeName: String, closure: @escaping (T, Peer) -> Void) {
+        decoders[typeName] = { container, peer in
             let payload = try container.decode(T.self, forKey: .payload)
 
-            DispatchQueue.main.async { closure(payload) }
+            DispatchQueue.main.async { closure(payload, peer) }
 
             return payload
         }
@@ -67,9 +69,11 @@ struct MultipeerMessage: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         type = try container.decode(String.self, forKey: .type)
+        
+        let sender = decoder.userInfo[MultipeerMessage.senderUserInfoKey]! as! Peer
 
         if let decode = Self.decoders[type] {
-            payload = try decode(container)
+            payload = try decode(container, sender)
         } else {
             payload = nil
         }

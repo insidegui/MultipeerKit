@@ -36,8 +36,9 @@ final class MultipeerKitTests: XCTestCase {
 
         let expect = XCTestExpectation(description: "Receive payload")
 
-        mock.receive(TestPayload.self) { p in
-            XCTAssertEqual(p, tsPayload)
+        mock.receive(TestPayload.self) { payload, sender in
+            XCTAssertEqual(payload, tsPayload)
+            XCTAssertEqual(sender.id, mock.localPeerId!)
 
             expect.fulfill()
         }

@@ -22,8 +22,8 @@ let transceiver = MultipeerTransceiver()
 transceiver.resume()
 
 // Configure message receivers
-transceiver.receive(SomeCodableThing.self) { payload in
-	print("Got my thing! \(payload)")
+transceiver.receive(SomeCodableThing.self) { payload, sender in
+print("Got my thing from \(sender.name)! \(payload)")
 }
 
 // Broadcast message to peers

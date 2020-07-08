@@ -1,8 +1,14 @@
 import Foundation
+import MultipeerConnectivity.MCPeerID
 
 final class MockMultipeerConnection: MultipeerProtocol {
 
-    var didReceiveData: ((Data, PeerName) -> Void)?
+    let localPeer: Peer = {
+        let underlyingPeer = MCPeerID(displayName: "MockPeer")
+        return try! Peer(peer: underlyingPeer, discoveryInfo: nil)
+    }()
+
+    var didReceiveData: ((Data, Peer) -> Void)?
     var didFindPeer: ((Peer) -> Void)?
     var didLosePeer: ((Peer) -> Void)?
     var didConnectToPeer: ((Peer) -> Void)?
@@ -19,7 +25,7 @@ final class MockMultipeerConnection: MultipeerProtocol {
     }
 
     func broadcast(_ data: Data) throws {
-        didReceiveData?(data, "MockPeer")
+        didReceiveData?(data, localPeer)
     }
 
     func send(_ data: Data, to peers: [Peer]) throws {
@@ -31,7 +37,7 @@ final class MockMultipeerConnection: MultipeerProtocol {
     }
     
     func getLocalPeerId() -> String? {
-        return "MockId"
+        return localPeer.id
     }
 
 }
