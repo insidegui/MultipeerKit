@@ -54,5 +54,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>MultipeerKit demo.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_MPKitDemo._tcp</string>
+	</array>
 </dict>
 </plist>

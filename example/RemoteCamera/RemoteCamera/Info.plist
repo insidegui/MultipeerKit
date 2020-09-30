@@ -20,8 +20,14 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_RemoteCamera._tcp</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Needed for photo sharing.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>MultipeerKit demo.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Needed for photo sharing.</string>
 	<key>UIApplicationSceneManifest</key>
