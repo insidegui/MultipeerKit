@@ -214,6 +214,10 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
         discoveredPeers[peerID] = nil
     }
 
+    func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
+        os_log("The multipeer connection failed to start browsing for peers. This could be due to missing keys in your app's Info.plist, check out the documentation at http://github.com/insidegui/MultipeerKit for more information. Error: %{public}@", log: log, type: .fault, String(describing: error))
+    }
+
 }
 
 // MARK: - Advertiser delegate
