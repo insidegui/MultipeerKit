@@ -16,7 +16,7 @@ let package = Package(
             name: "MultipeerKit",
             targets: ["MultipeerKit"]),
         .library(
-            name: "MultipeerKit-dynamic",
+            name: "MultipeerKitDynamic",
             type: .dynamic,
             targets: ["MultipeerKit"]),
     ],
