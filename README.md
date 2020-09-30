@@ -8,6 +8,18 @@ Check the example folder for a sample implementation.
 
 ![Sample](../assets/demo.gif?raw=true)
 
+## Info.plist configuration
+
+In order for MultipeerKit to work when running on iOS 14, you will have to include two keys in your app's Info.plist file.
+
+The keys are `Privacy - Local Network Usage Description` (`NSLocalNetworkUsageDescription`) and `Bonjour services` (`NSBonjourServices`).
+
+For the privacy key, include a human-readable description of what benefit the user gets by allowing your app to access devices on the local network.
+
+The Bonjour services key is an array of service types that your app will browse for. For MultipeerKit, the entry should be in the format `_servicename._tcp`, where `servicename` is the `serviceType` you've set in your `MultipeerConfiguration`. If you're using the default configuration, the value of this key should be `_MKSVC._tcp`.
+
+**If you do not configure the above keys properly, then MultipeerKit won't work.**
+
 ## Usage
 
 The main class in this library is `MultipeerTransceiver`, which does both the sending and receiving aspects of the multipeer communication.
