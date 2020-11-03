@@ -81,6 +81,9 @@ public struct MultipeerConfiguration {
     /// Defines how the multipeer connection handles newly discovered peers.
     public var invitation: Invitation
 
+    /// Configure the send data mode when sending messages over the multipeer connection.
+    public var transmissionMode: MCSessionSendDataMode
+
     /// Creates a new configuration.
     /// - Parameters:
     ///   - serviceType: This must be the same accross your app running on multiple devices,
@@ -98,7 +101,8 @@ public struct MultipeerConfiguration {
                 peerName: String,
                 defaults: UserDefaults,
                 security: Security,
-                invitation: Invitation)
+                invitation: Invitation,
+                transmissionMode: MCSessionSendDataMode = .reliable)
     {
         precondition(peerName.utf8.count <= 63, "peerName can't be longer than 63 bytes")
 
@@ -107,6 +111,7 @@ public struct MultipeerConfiguration {
         self.defaults = defaults
         self.security = security
         self.invitation = invitation
+        self.transmissionMode = transmissionMode
     }
 
     /// The default configuration, uses the service type `MKSVC`, the name of the device/computer as the
