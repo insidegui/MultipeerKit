@@ -20,6 +20,8 @@ public final class MultipeerDataSource: ObservableObject {
         transceiver.availablePeersDidChange = { [weak self] peers in
             self?.availablePeers = peers
         }
+
+        availablePeers = transceiver.availablePeers
     }
 
     /// Peers currently available for invitation, connection and data transmission.
