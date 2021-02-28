@@ -20,7 +20,7 @@ public final class MultipeerDataSource: ObservableObject {
         transceiver.availablePeersDidChange = { [weak self] peers in
             self?.availablePeers = peers
         }
-        /// We need to initially set the available peers
+
         availablePeers = transceiver.availablePeers
     }
 
