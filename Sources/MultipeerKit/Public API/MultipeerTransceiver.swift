@@ -18,6 +18,12 @@ public final class MultipeerTransceiver {
     /// Called on the main queue when a peer removed.
     public var peerRemoved: (Peer) -> Void = { _ in }
 
+    /// Called on the main queue when a connection is established with a peer.
+    public var peerConnected: (Peer) -> Void = { _ in }
+    
+    /// Called on the main queue when the connection with a peer is interrupted.
+    public var peerDisconnected: (Peer) -> Void = { _ in }
+    
     /// The current device's peer id
     public var localPeerId: String? {
         return connection.getLocalPeerId()
@@ -174,10 +180,14 @@ public final class MultipeerTransceiver {
 
     private func handlePeerConnected(_ peer: Peer) {
         setConnected(true, on: peer)
+        
+        peerConnected(peer)
     }
 
     private func handlePeerDisconnected(_ peer: Peer) {
         setConnected(false, on: peer)
+        
+        peerDisconnected(peer)
     }
 
     private func setConnected(_ connected: Bool, on peer: Peer) {
