@@ -108,7 +108,7 @@ public final class MultipeerTransceiver {
 
     /// Sends a message to all connected peers.
     /// - Parameter payload: The payload to be sent.
-    public func broadcast<T: Encodable>(_ payload: T) {
+    public func broadcast<T: Encodable>(_ payload: T, mode: MCSessionSendDataMode = .reliable) {
         MultipeerMessage.register(T.self, for: String(describing: T.self))
 
         do {
@@ -116,7 +116,7 @@ public final class MultipeerTransceiver {
 
             let data = try JSONEncoder().encode(message)
 
-            try connection.broadcast(data)
+            try connection.broadcast(data, mode: mode)
         } catch {
             os_log("Failed to send payload %@: %{public}@", log: self.log, type: .error, String(describing: payload), String(describing: error))
         }
@@ -126,7 +126,7 @@ public final class MultipeerTransceiver {
     /// - Parameters:
     ///   - payload: The payload to be sent.
     ///   - peers: An array of peers to send the message to.
-    public func send<T: Encodable>(_ payload: T, to peers: [Peer]) {
+    public func send<T: Encodable>(_ payload: T, to peers: [Peer], mode: MCSessionSendDataMode = .reliable) {
         MultipeerMessage.register(T.self, for: String(describing: T.self))
         
         do {
@@ -134,7 +134,7 @@ public final class MultipeerTransceiver {
 
             let data = try JSONEncoder().encode(message)
 
-            try connection.send(data, to: peers)
+            try connection.send(data, to: peers, mode: mode)
         } catch {
             os_log("Failed to send payload %@: %{public}@", log: self.log, type: .error, String(describing: payload), String(describing: error))
         }

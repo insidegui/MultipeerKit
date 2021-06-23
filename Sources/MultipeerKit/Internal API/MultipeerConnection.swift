@@ -88,18 +88,18 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
         return a
     }()
 
-    func broadcast(_ data: Data) throws {
+    func broadcast(_ data: Data, mode: MCSessionSendDataMode = .reliable) throws {
         guard !session.connectedPeers.isEmpty else {
             os_log("Not broadcasting message: no connected peers", log: self.log, type: .error)
             return
         }
 
-        try session.send(data, toPeers: session.connectedPeers, with: .reliable)
+        try session.send(data, toPeers: session.connectedPeers, with: mode)
     }
 
-    func send(_ data: Data, to peers: [Peer]) throws {
+    func send(_ data: Data, to peers: [Peer], mode: MCSessionSendDataMode = .reliable) throws {
         let ids = peers.map { $0.underlyingPeer }
-        try session.send(data, toPeers: ids, with: .reliable)
+        try session.send(data, toPeers: ids, with: mode)
     }
     
     func stream(to peer: Peer, with name: String) throws -> OutputStream {
