@@ -9,6 +9,7 @@ final class MockMultipeerConnection: MultipeerProtocol {
     }()
 
     var didReceiveData: ((Data, Peer) -> Void)?
+    var didReceiveStream: ((InputStream, String, Peer) -> Void)?
     var didFindPeer: ((Peer) -> Void)?
     var didLosePeer: ((Peer) -> Void)?
     var didConnectToPeer: ((Peer) -> Void)?
@@ -30,6 +31,10 @@ final class MockMultipeerConnection: MultipeerProtocol {
 
     func send(_ data: Data, to peers: [Peer]) throws {
         
+    }
+    
+    func stream(to peer: Peer, with name: String) throws -> OutputStream {
+        fatalError()
     }
 
     func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {

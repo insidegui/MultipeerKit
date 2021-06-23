@@ -24,6 +24,9 @@ public final class MultipeerTransceiver {
     /// Called on the main queue when the connection with a peer is interrupted.
     public var peerDisconnected: (Peer) -> Void = { _ in }
     
+    /// Called on the main queue when a remote peer opens up a stream.
+    public var peerStreamAdded: (InputStream, String, Peer) -> Void = { _, _, _ in }
+    
     /// The current device's peer id
     public var localPeerId: String? {
         return connection.getLocalPeerId()
@@ -60,6 +63,9 @@ public final class MultipeerTransceiver {
     private func configure(_ connection: MultipeerProtocol) {
         connection.didReceiveData = { [weak self] data, peer in
             self?.handleDataReceived(data, from: peer)
+        }
+        connection.didReceiveStream = { [weak self] stream, name, peer in
+            DispatchQueue.main.async { self?.peerStreamAdded(stream, name, peer) }
         }
         connection.didFindPeer = { [weak self] peer in
             DispatchQueue.main.async { self?.handlePeerAdded(peer) }
@@ -132,6 +138,15 @@ public final class MultipeerTransceiver {
         } catch {
             os_log("Failed to send payload %@: %{public}@", log: self.log, type: .error, String(describing: payload), String(describing: error))
         }
+    }
+    
+    /// Starts a stream with the specified peer.
+    /// - Parameters:
+    ///   - peer: The peer you want to stream to.
+    ///   - name: A custom name for the stream.
+    /// - Returns: The output stream where data can be written to.
+    public func openStream(to peer: Peer, with name: String) throws -> OutputStream {
+        try connection.stream(to: peer, with: name)
     }
 
     private func handleDataReceived(_ data: Data, from peer: Peer) {

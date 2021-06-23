@@ -30,6 +30,7 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     }
 
     var didReceiveData: ((Data, Peer) -> Void)?
+    var didReceiveStream: ((InputStream, String, Peer) -> Void)?
     var didFindPeer: ((Peer) -> Void)?
     var didLosePeer: ((Peer) -> Void)?
     var didConnectToPeer: ((Peer) -> Void)?
@@ -100,6 +101,10 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
         let ids = peers.map { $0.underlyingPeer }
         try session.send(data, toPeers: ids, with: .reliable)
     }
+    
+    func stream(to peer: Peer, with name: String) throws -> OutputStream {
+        try session.startStream(withName: name, toPeer: peer.underlyingPeer)
+    }
 
     private var invitationCompletionHandlers: [MCPeerID: InvitationCompletionHandler] = [:]
 
@@ -155,7 +160,13 @@ extension MultipeerConnection: MCSessionDelegate {
     }
 
     func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
-        os_log("%{public}@", log: log, type: .debug, #function)
+        os_log("%{public}@ %@ %@", log: log, type: .debug, #function, streamName, String(describing: peerID))
+        
+        if let peer = try? Peer(peer: peerID, discoveryInfo: nil) {
+            didReceiveStream?(stream, streamName, peer)
+        } else {
+            os_log("Received stream, but cannot create peer for %s", log: log, type: .error, #function, peerID.displayName)
+        }
     }
 
     func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
