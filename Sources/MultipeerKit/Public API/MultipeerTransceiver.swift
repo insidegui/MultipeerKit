@@ -95,6 +95,12 @@ public final class MultipeerTransceiver {
     public func receive<T: Codable>(_ type: T.Type, using closure: @escaping (_ payload: T, _ sender: Peer) -> Void) {
         MultipeerMessage.register(type, for: String(describing: type), closure: closure)
     }
+    
+    private var rawReceivers: [(_ data: Data, _ sender: Peer) -> Void] = []
+    
+    public func receiveRaw(using closure: @escaping (_ data: Data, _ sender: Peer) -> Void) {
+        rawReceivers.append(closure)
+    }
 
     /// Resumes the transceiver, allowing this peer to be discovered and to discover remote peers.
     public func resume() {
@@ -108,6 +114,7 @@ public final class MultipeerTransceiver {
 
     /// Sends a message to all connected peers.
     /// - Parameter payload: The payload to be sent.
+    /// - mode: The mode for sending.
     public func broadcast<T: Encodable>(_ payload: T, mode: MCSessionSendDataMode = .reliable) {
         MultipeerMessage.register(T.self, for: String(describing: T.self))
 
@@ -119,6 +126,18 @@ public final class MultipeerTransceiver {
             try connection.broadcast(data, mode: mode)
         } catch {
             os_log("Failed to send payload %@: %{public}@", log: self.log, type: .error, String(describing: payload), String(describing: error))
+        }
+    }
+    
+    /// Sends raw data to all connected peers.
+    /// - Parameters:
+    ///   - data: The raw data payload to be sent.
+    ///   - mode: The mode for sending.
+    public func broadcastRaw(_ data: Data, mode: MCSessionSendDataMode = .reliable) {
+        do {
+            try connection.broadcast(data, mode: mode)
+        } catch {
+            os_log("Failed to send data: %{public}@", log: self.log, type: .error, String(describing: error))
         }
     }
 
@@ -160,6 +179,10 @@ public final class MultipeerTransceiver {
             os_log("Received message %@", log: self.log, type: .debug, String(describing: message))
         } catch {
             os_log("Failed to decode message: %{public}@", log: self.log, type: .error, String(describing: error))
+            
+            rawReceivers.forEach { receiver in
+                DispatchQueue.main.async { receiver(data, peer) }
+            }
         }
     }
 
