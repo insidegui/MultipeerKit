@@ -2,6 +2,8 @@ import Foundation
 import MultipeerConnectivity
 import os.log
 
+/// The completion handler called when the remote peer responds to a manual invite initiated
+/// by calling ``MultipeerTransceiver/invite(_:with:timeout:completion:)``.
 public typealias InvitationCompletionHandler = (_ result: Result<Peer, Error>) -> Void
 
 public struct MultipeerError: LocalizedError {

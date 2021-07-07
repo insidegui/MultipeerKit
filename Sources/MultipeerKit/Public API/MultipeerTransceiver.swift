@@ -110,7 +110,7 @@ public final class MultipeerTransceiver {
         }
     }
 
-    /// Sends a message to a specific peer.
+    /// Sends a message to a specific set of peers.
     /// - Parameters:
     ///   - payload: The payload to be sent.
     ///   - peers: An array of peers to send the message to.
