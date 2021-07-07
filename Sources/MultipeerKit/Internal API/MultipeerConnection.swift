@@ -38,11 +38,15 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     func resume() {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        if modes.contains(.receiver) {
-            advertiser.startAdvertisingPeer()
-        }
         if modes.contains(.transmitter) {
+            // Ideally, we'd just keep using the same browser for the lifetime of the MultipeerConnection object.
+            // However, due to #12, we can't. The same process is done with the advertiser for consistency.
+            browser = makeBrowser()
             browser.startBrowsingForPeers()
+        }
+        if modes.contains(.receiver) {
+            advertiser = makeAdvertiser()
+            advertiser.startAdvertisingPeer()
         }
     }
 
@@ -69,21 +73,25 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
         return s
     }()
 
-    private lazy var browser: MCNearbyServiceBrowser = {
+    private func makeBrowser() -> MCNearbyServiceBrowser {
         let b = MCNearbyServiceBrowser(peer: me, serviceType: configuration.serviceType)
 
         b.delegate = self
 
         return b
-    }()
+    }
 
-    private lazy var advertiser: MCNearbyServiceAdvertiser = {
+    private lazy var browser: MCNearbyServiceBrowser = { makeBrowser() }()
+
+    private func makeAdvertiser() -> MCNearbyServiceAdvertiser {
         let a = MCNearbyServiceAdvertiser(peer: me, discoveryInfo: nil, serviceType: configuration.serviceType)
 
         a.delegate = self
 
         return a
-    }()
+    }
+    
+    private lazy var advertiser: MCNearbyServiceAdvertiser = { makeAdvertiser() }()
 
     func broadcast(_ data: Data) throws {
         guard !session.connectedPeers.isEmpty else {
