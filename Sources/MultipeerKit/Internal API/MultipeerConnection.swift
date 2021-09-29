@@ -130,11 +130,11 @@ extension MultipeerConnection: MCSessionDelegate {
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        guard let peer = discoveredPeers[peerID] else { return }
-
-        let handler = invitationCompletionHandlers[peerID]
-
         DispatchQueue.main.async {
+            guard let peer = self.discoveredPeers[peerID] else { return }
+    
+            let handler = self.invitationCompletionHandlers[peerID]
+    
             switch state {
             case .connected:
                 handler?(.success(peer))
@@ -237,13 +237,15 @@ extension MultipeerConnection: MCNearbyServiceAdvertiserDelegate {
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        guard let peer = discoveredPeers[peerID] else { return }
+        DispatchQueue.main.async {
+            guard let peer = self.discoveredPeers[peerID] else { return }
 
-        configuration.security.invitationHandler(peer, context, { [weak self] decision in
-            guard let self = self else { return }
+            self.configuration.security.invitationHandler(peer, context, { [weak self] decision in
+                guard let self = self else { return }
 
-            invitationHandler(decision, decision ? self.session : nil)
-        })
+                invitationHandler(decision, decision ? self.session : nil)
+            })
+        }
     }
 
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
