@@ -53,7 +53,7 @@ MultipeerKit is a Swift package, to use it in your project, add this to your `Pa
 let package = Package(
     ...
     dependencies: [
-        .package(url: "https://github.com/insidegui/MultipeerKit.git", from: "0.2.0")
+        .package(url: "https://github.com/insidegui/MultipeerKit.git", from: "0.4.0")
     ],
     ...
 )
