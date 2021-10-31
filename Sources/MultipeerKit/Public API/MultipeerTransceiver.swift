@@ -163,12 +163,21 @@ public final class MultipeerTransceiver {
     public func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {
         connection.invite(peer, with: context, timeout: timeout, completion: completion)
     }
+    
+    public enum PeerEvent: Hashable {
+        case found(Peer)
+        case lost(Peer)
+        case connected(Peer)
+        case disconnected(Peer)
+    }
 
     private func handlePeerAdded(_ peer: Peer) {
         guard !availablePeers.contains(peer) else { return }
 
         availablePeers.append(peer)
         peerAdded(peer)
+        
+        peerEventOccurred(.found(peer))
     }
 
     private func handlePeerRemoved(_ peer: Peer) {
@@ -176,18 +185,24 @@ public final class MultipeerTransceiver {
 
         availablePeers.remove(at: idx)
         peerRemoved(peer)
+        
+        peerEventOccurred(.lost(peer))
     }
 
     private func handlePeerConnected(_ peer: Peer) {
         setConnected(true, on: peer)
         
         peerConnected(peer)
+        
+        peerEventOccurred(.connected(peer))
     }
 
     private func handlePeerDisconnected(_ peer: Peer) {
         setConnected(false, on: peer)
         
         peerDisconnected(peer)
+        
+        peerEventOccurred(.disconnected(peer))
     }
 
     private func setConnected(_ connected: Bool, on peer: Peer) {
@@ -197,5 +212,44 @@ public final class MultipeerTransceiver {
         mutablePeer.isConnected = connected
         availablePeers[idx] = mutablePeer
     }
+    
+    // MARK: - Swift Concurrency Support
+    
+    private typealias PeerEventCallback = (PeerEvent) -> Void
+    
+    private var internalPeerEventCallbacks: [UUID: PeerEventCallback] = [:]
+   
+    private func addInternalPeerEventsCallback(with block: @escaping PeerEventCallback) -> UUID {
+        let id = UUID()
+        internalPeerEventCallbacks[id] = block
+        return id
+    }
+    
+    private func peerEventOccurred(_ event: PeerEvent) {
+        DispatchQueue.main.async {
+            self.internalPeerEventCallbacks.values.forEach { $0(event) }
+        }
+    }
 
+}
+
+@available(tvOS 13.0, *)
+@available(iOS 13.0, *)
+@available(macOS 10.15, *)
+public extension MultipeerTransceiver {
+    
+    var peerEvents: AsyncStream<PeerEvent> {
+        AsyncStream { [weak self] continuation in
+            guard let self = self else { return }
+            
+            let id = self.addInternalPeerEventsCallback { event in
+                continuation.yield(event)
+            }
+            
+            continuation.onTermination = { @Sendable _ in
+                self.internalPeerEventCallbacks[id] = nil
+            }
+        }
+    }
+    
 }
