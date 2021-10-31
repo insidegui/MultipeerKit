@@ -12,10 +12,10 @@ public final class MultipeerTransceiver {
     /// Called on the main queue when available peers have changed (new peers discovered or peers removed).
     public var availablePeersDidChange: ([Peer]) -> Void = { _ in }
 
-    /// Called on the main queue when a new peer discovered.
+    /// Called on the main queue when a new peer is discovered.
     public var peerAdded: (Peer) -> Void = { _ in }
 
-    /// Called on the main queue when a peer removed.
+    /// Called on the main queue when a previously discovered peer is no longer seen nearby.
     public var peerRemoved: (Peer) -> Void = { _ in }
 
     /// Called on the main queue when a connection is established with a peer.
@@ -164,10 +164,16 @@ public final class MultipeerTransceiver {
         connection.invite(peer, with: context, timeout: timeout, completion: completion)
     }
     
+    /// Describes an event that has occurred with a remote peer.
+    /// You can receive a stream of events by `await`ing on the ``peerEvents`` async sequence property.
     public enum PeerEvent: Hashable {
+        /// A new peer has been discovered.
         case found(Peer)
+        /// A previously discovered peer is no longer detected nearby.
         case lost(Peer)
+        /// A peer is now connected.
         case connected(Peer)
+        /// A peer is now disconnected.
         case disconnected(Peer)
     }
 
@@ -238,6 +244,24 @@ public final class MultipeerTransceiver {
 @available(macOS 10.15, *)
 public extension MultipeerTransceiver {
     
+    /// An `AsyncStream` that you can `await` on in order to receive peer discovery and connection events as they occur.
+    ///
+    /// ## Example:
+    ///
+    /// ```swift
+    /// for await event in transceiver.peerEvents {
+    ///     switch event {
+    ///     case .found(let peer):
+    ///         print("Peer \(peer.name) was found.")
+    ///     case .lost(let peer):
+    ///         print("Peer \(peer.name) was lost.")
+    ///     case .connected(let peer):
+    ///         print("Peer \(peer.name) is now connected.")
+    ///     case .disconnected(let peer):
+    ///         print("Peer \(peer.name) is now disconnected.")
+    ///     }
+    /// }
+    /// ```
     var peerEvents: AsyncStream<PeerEvent> {
         AsyncStream { [weak self] continuation in
             guard let self = self else { return }
