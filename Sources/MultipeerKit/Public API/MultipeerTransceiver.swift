@@ -24,6 +24,10 @@ public final class MultipeerTransceiver {
     /// Called on the main queue when the connection with a peer is interrupted.
     public var peerDisconnected: (Peer) -> Void = { _ in }
     
+    /// Called on the main queue when a message of any type is received.
+    /// Useful to inspect raw messages, use `receive(_:using:)` to handle specific messages in a type-safe manner.
+    public var messageReceived: (_ sender: Peer, _ messageType: String, _ payload: Data) -> Void = { _, _, _ in }
+    
     /// The current device's peer id
     public var localPeerId: String? {
         return connection.getLocalPeerId()
@@ -143,6 +147,8 @@ public final class MultipeerTransceiver {
             let message = try decoder.decode(MultipeerMessage.self, from: data)
 
             os_log("Received message %@", log: self.log, type: .debug, String(describing: message))
+            
+            messageReceived(peer, message.type, data)
         } catch {
             os_log("Failed to decode message: %{public}@", log: self.log, type: .error, String(describing: error))
         }
