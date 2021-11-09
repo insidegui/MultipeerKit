@@ -148,7 +148,7 @@ public final class MultipeerTransceiver {
 
             os_log("Received message %@", log: self.log, type: .debug, String(describing: message))
             
-            messageReceived(peer, message.type, data)
+            DispatchQueue.main.async { self.messageReceived(peer, message.type, data) }
         } catch {
             os_log("Failed to decode message: %{public}@", log: self.log, type: .error, String(describing: error))
         }
