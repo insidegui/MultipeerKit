@@ -37,7 +37,7 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
 
     private var discoveredPeers: [MCPeerID: Peer] = [:]
 
-    func resume() {
+    func resume(with discoveryInfo: [String: String]? = nil) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
         if modes.contains(.transmitter) {
@@ -47,7 +47,7 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
             browser.startBrowsingForPeers()
         }
         if modes.contains(.receiver) {
-            advertiser = makeAdvertiser()
+            advertiser = makeAdvertiser(with: discoveryInfo)
             advertiser.startAdvertisingPeer()
         }
     }
@@ -85,15 +85,15 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
 
     private lazy var browser: MCNearbyServiceBrowser = { makeBrowser() }()
 
-    private func makeAdvertiser() -> MCNearbyServiceAdvertiser {
-        let a = MCNearbyServiceAdvertiser(peer: me, discoveryInfo: nil, serviceType: configuration.serviceType)
+    private func makeAdvertiser(with discoveryInfo: [String: String]?) -> MCNearbyServiceAdvertiser {
+        let a = MCNearbyServiceAdvertiser(peer: me, discoveryInfo: discoveryInfo, serviceType: configuration.serviceType)
 
         a.delegate = self
 
         return a
     }
     
-    private lazy var advertiser: MCNearbyServiceAdvertiser = { makeAdvertiser() }()
+    private lazy var advertiser: MCNearbyServiceAdvertiser = { makeAdvertiser(with: nil) }()
 
     func broadcast(_ data: Data) throws {
         guard !session.connectedPeers.isEmpty else {
@@ -119,6 +119,10 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     
     func getLocalPeerId() -> String? {
         return try? Peer(peer: me, discoveryInfo: nil).id
+    }
+    
+    private func peer(for peerID: MCPeerID) -> Peer? {
+        discoveredPeers[peerID] ?? (try? Peer(peer: peerID, discoveryInfo: nil))
     }
 
 }
@@ -155,7 +159,7 @@ extension MultipeerConnection: MCSessionDelegate {
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        if let peer = try? Peer(peer: peerID, discoveryInfo: nil) {
+        if let peer = peer(for: peerID) {
             didReceiveData?(data, peer)
         } else {
             os_log("Received data, but cannot create peer for %s", log: log, type: .error, #function, peerID.displayName)

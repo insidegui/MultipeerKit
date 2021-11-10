@@ -10,7 +10,7 @@ protocol MultipeerProtocol: AnyObject {
     var didConnectToPeer: ((Peer) -> Void)? { get set }
     var didDisconnectFromPeer: ((Peer) -> Void)? { get set }
 
-    func resume()
+    func resume(with discoveryInfo: [String: String]?)
     func stop()
 
     func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?)

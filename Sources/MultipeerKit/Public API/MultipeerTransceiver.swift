@@ -95,8 +95,11 @@ public final class MultipeerTransceiver {
     }
 
     /// Resumes the transceiver, allowing this peer to be discovered and to discover remote peers.
-    public func resume() {
-        connection.resume()
+    /// - Parameter discoveryInfo: A dictionary for small amounts of data that will be advertised for the local peer.
+    ///
+    /// See the documentation on MultipeerConnectivity for more details about the limitations of `discoveryInfo`.
+    public func resume(with discoveryInfo: [String: String]? = nil) {
+        connection.resume(with: discoveryInfo)
     }
 
     /// Stops the transceiver, preventing this peer from discovering and being discovered.

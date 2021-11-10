@@ -16,7 +16,7 @@ final class MockMultipeerConnection: MultipeerProtocol {
     
     var isRunning = false
 
-    func resume() {
+    func resume(with discoveryInfo: [String : String]?) {
         isRunning = true
     }
 
