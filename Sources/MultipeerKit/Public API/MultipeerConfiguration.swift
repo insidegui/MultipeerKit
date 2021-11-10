@@ -74,6 +74,10 @@ public struct MultipeerConfiguration {
     /// remains stable between different sessions. If you use MultipeerKit in app extensions,
     /// make sure to use a shared app group if you wish to maintain a stable identity.
     public var defaults: UserDefaults
+    
+    /// The key to use for storing the peer's identity so that it remains stable
+    /// between different sessions.
+    public var defaultsKey: String = "_multipeerKit.mePeerID"
 
     /// The security configuration.
     public var security: Security
@@ -101,6 +105,7 @@ public struct MultipeerConfiguration {
                 invitation: Invitation)
     {
         precondition(peerName.utf8.count <= 63, "peerName can't be longer than 63 bytes")
+        precondition(!defaultsKey.isEmpty, "defaultsKey can't be empty")
 
         self.serviceType = serviceType
         self.peerName = peerName
