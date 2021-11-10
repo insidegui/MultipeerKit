@@ -35,6 +35,10 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     var didConnectToPeer: ((Peer) -> Void)?
     var didDisconnectFromPeer: ((Peer) -> Void)?
 
+    /// The peers that are currently nearby and advertising.
+    private var advertisingPeers: [MCPeerID: Peer] = [:]
+    
+    /// All peers that have been discovered, even if they're no longer advertising.
     private var discoveredPeers: [MCPeerID: Peer] = [:]
 
     func resume(with discoveryInfo: [String: String]? = nil) {
@@ -135,7 +139,10 @@ extension MultipeerConnection: MCSessionDelegate {
         os_log("%{public}@", log: log, type: .debug, #function)
 
         DispatchQueue.main.async {
-            guard let peer = self.discoveredPeers[peerID] else { return }
+            guard let peer = self.discoveredPeers[peerID] else {
+                os_log("Couldn't find peerID %@ in discovered peers", log: self.log, type: .error, String(describing: peerID))
+                return
+            }
     
             let handler = self.invitationCompletionHandlers[peerID]
     
@@ -190,6 +197,7 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
         do {
             let peer = try Peer(peer: peerID, discoveryInfo: info)
 
+            advertisingPeers[peerID] = peer
             discoveredPeers[peerID] = peer
 
             didFindPeer?(peer)
@@ -221,11 +229,11 @@ extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        guard let peer = discoveredPeers[peerID] else { return }
+        guard let peer = advertisingPeers[peerID] else { return }
 
         didLosePeer?(peer)
 
-        discoveredPeers[peerID] = nil
+        advertisingPeers[peerID] = nil
     }
 
     func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
@@ -242,7 +250,7 @@ extension MultipeerConnection: MCNearbyServiceAdvertiserDelegate {
         os_log("%{public}@", log: log, type: .debug, #function)
 
         DispatchQueue.main.async {
-            guard let peer = self.discoveredPeers[peerID] else { return }
+            guard let peer = self.advertisingPeers[peerID] else { return }
 
             self.configuration.security.invitationHandler(peer, context, { [weak self] decision in
                 guard let self = self else { return }
