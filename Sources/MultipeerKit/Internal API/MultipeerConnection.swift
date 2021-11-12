@@ -269,7 +269,7 @@ extension MultipeerConnection: MCNearbyServiceAdvertiserDelegate {
         os_log("%{public}@", log: log, type: .debug, #function)
 
         DispatchQueue.main.async {
-            guard let peer = self.advertisingPeers[peerID] else { return }
+            guard let peer = self.discoveredPeers[peerID] else { return }
 
             self.configuration.security.invitationHandler(peer, context, { [weak self] decision in
                 guard let self = self else { return }
