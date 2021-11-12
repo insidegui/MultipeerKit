@@ -206,5 +206,13 @@ public final class MultipeerTransceiver {
         mutablePeer.isConnected = connected
         availablePeers[idx] = mutablePeer
     }
+    
+    public func fetchConnectionData(for peer: Peer, completion: @escaping (Result<Data, Error>) -> Void) {
+        connection.fetchConnectionData(for: peer, completion: completion)
+    }
+    
+    public func connectPeer(_ peer: Peer, using connectionData: Data) {
+        connection.connectPeer(peer, using: connectionData)
+    }
 
 }

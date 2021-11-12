@@ -18,5 +18,8 @@ protocol MultipeerProtocol: AnyObject {
     func send(_ data: Data, to peers: [Peer]) throws
     
     func getLocalPeerId() -> String?
-
+    
+    func fetchConnectionData(for peer: Peer, completion: @escaping (Result<Data, Error>) -> Void)
+    func connectPeer(_ peer: Peer, using connectionData: Data)
+    
 }

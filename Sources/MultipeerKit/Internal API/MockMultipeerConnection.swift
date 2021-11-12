@@ -39,5 +39,13 @@ final class MockMultipeerConnection: MultipeerProtocol {
     func getLocalPeerId() -> String? {
         return localPeer.id
     }
+    
+    func fetchConnectionData(for peer: Peer, completion: @escaping (Result<Data, Error>) -> Void) {
+        
+    }
+    
+    func connectPeer(_ peer: Peer, using connectionData: Data) {
+        
+    }
 
 }

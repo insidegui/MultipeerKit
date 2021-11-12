@@ -128,6 +128,25 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     private func peer(for peerID: MCPeerID) -> Peer? {
         discoveredPeers[peerID] ?? (try? Peer(peer: peerID, discoveryInfo: nil))
     }
+    
+    func fetchConnectionData(for peer: Peer, completion: @escaping (Result<Data, Error>) -> Void) {
+        session.nearbyConnectionData(forPeer: peer.underlyingPeer) { data, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion(.failure(error))
+                } else {
+                    assert(data != nil)
+                    guard let data = data else { return }
+                    
+                    completion(.success(data))
+                }
+            }
+        }
+    }
+    
+    func connectPeer(_ peer: Peer, using connectionData: Data) {
+        session.connectPeer(peer.underlyingPeer, withNearbyConnectionData: connectionData)
+    }
 
 }
 
