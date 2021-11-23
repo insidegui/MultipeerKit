@@ -147,6 +147,12 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     func connectPeer(_ peer: Peer, using connectionData: Data) {
         session.connectPeer(peer.underlyingPeer, withNearbyConnectionData: connectionData)
     }
+    
+    func disconnect() {
+        os_log("%{public}@", log: log, type: .debug, #function)
+        
+        session.disconnect()
+    }
 
 }
 

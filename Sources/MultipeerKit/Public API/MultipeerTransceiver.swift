@@ -214,5 +214,9 @@ public final class MultipeerTransceiver {
     public func connectPeer(_ peer: Peer, using connectionData: Data) {
         connection.connectPeer(peer, using: connectionData)
     }
+    
+    public func disconnect() {
+        connection.disconnect()
+    }
 
 }

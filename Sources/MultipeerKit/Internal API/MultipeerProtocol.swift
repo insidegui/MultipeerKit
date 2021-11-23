@@ -21,5 +21,6 @@ protocol MultipeerProtocol: AnyObject {
     
     func fetchConnectionData(for peer: Peer, completion: @escaping (Result<Data, Error>) -> Void)
     func connectPeer(_ peer: Peer, using connectionData: Data)
+    func disconnect()
     
 }

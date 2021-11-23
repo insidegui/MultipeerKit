@@ -47,5 +47,9 @@ final class MockMultipeerConnection: MultipeerProtocol {
     func connectPeer(_ peer: Peer, using connectionData: Data) {
         
     }
+    
+    func disconnect() {
+        
+    }
 
 }
