@@ -28,7 +28,12 @@ public final class MultipeerTransceiver {
     public var localPeer: Peer? {
         return connection.getLocalPeer()
     }
-    
+
+    @available(*, deprecated, message: "If you need the String Id, you can get it from localPeer.id instead.")
+    public var localPeerId: String? {
+        return localPeer?.id
+    }
+
     /// All peers currently available for invitation, connection and data transmission.
     public private(set) var availablePeers: [Peer] = [] {
         didSet {
