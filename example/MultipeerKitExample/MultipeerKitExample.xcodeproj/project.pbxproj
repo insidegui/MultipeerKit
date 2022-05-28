@@ -15,6 +15,7 @@
 		DDADA0A2240A83B400842749 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDADA0A0240A83B400842749 /* LaunchScreen.storyboard */; };
 		DDADA0AC240A83FF00842749 /* MultipeerKit in Frameworks */ = {isa = PBXBuildFile; productRef = DDADA0AB240A83FF00842749 /* MultipeerKit */; };
 		DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA0AD240A844B00842749 /* ExamplePayload.swift */; };
+		DE13AA3F2842BD50008C3C54 /* Peer+History.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE13AA3E2842BD50008C3C54 /* Peer+History.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,13 +23,14 @@
 		DDADA092240A83B300842749 /* MultipeerKitExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MultipeerKitExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDADA095240A83B300842749 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DDADA097240A83B300842749 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		DDADA099240A83B300842749 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		DDADA099240A83B300842749 /* ContentView.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		DDADA09B240A83B400842749 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DDADA09E240A83B400842749 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		DDADA0A1240A83B400842749 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DDADA0A3240A83B400842749 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DDADA0A9240A83F800842749 /* MultipeerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MultipeerKit; path = ../..; sourceTree = "<group>"; };
 		DDADA0AD240A844B00842749 /* ExamplePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamplePayload.swift; sourceTree = "<group>"; };
+		DE13AA3E2842BD50008C3C54 /* Peer+History.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Peer+History.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +71,7 @@
 				DDADA095240A83B300842749 /* AppDelegate.swift */,
 				DDADA097240A83B300842749 /* SceneDelegate.swift */,
 				DDADA099240A83B300842749 /* ContentView.swift */,
+				DE13AA3E2842BD50008C3C54 /* Peer+History.swift */,
 				DDADA09B240A83B400842749 /* Assets.xcassets */,
 				DDADA0A0240A83B400842749 /* LaunchScreen.storyboard */,
 				DDADA0A3240A83B400842749 /* Info.plist */,
@@ -166,6 +169,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DE13AA3F2842BD50008C3C54 /* Peer+History.swift in Sources */,
 				DDADA096240A83B300842749 /* AppDelegate.swift in Sources */,
 				DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */,
 				DDADA098240A83B300842749 /* SceneDelegate.swift in Sources */,

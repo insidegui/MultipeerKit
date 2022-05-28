@@ -196,11 +196,9 @@ public final class MultipeerTransceiver {
     }
 
     private func setConnected(_ connected: Bool, on peer: Peer) {
-        guard let idx = availablePeers.firstIndex(where: { $0.underlyingPeer == peer.underlyingPeer }) else { return }
+        guard let peer = availablePeers.first(where: { $0.underlyingPeer == peer.underlyingPeer }) else { return }
 
-        var mutablePeer = availablePeers[idx]
-        mutablePeer.isConnected = connected
-        availablePeers[idx] = mutablePeer
+        peer.isConnected = connected
     }
 
 }

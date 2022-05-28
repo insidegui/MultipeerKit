@@ -37,6 +37,9 @@ struct ContentView: View {
                 Button(action: { self.sendToSelectedPeers(self.viewModel.message) }) {
                     Text("SEND")
                 }
+
+                Text("\(dataSource.availablePeers.reduce(0, { $0 + $1.history.count })) message(s) sent")
+                    .foregroundColor(.secondary)
             }
 
             VStack(alignment: .leading) {
@@ -73,7 +76,11 @@ struct ContentView: View {
             return
         }
 
-        let payload = ExamplePayload(message: self.viewModel.message)
+        let payload = ExamplePayload(message: message)
+        viewModel.selectedPeers = viewModel.selectedPeers.map { peer in
+            peer.history.append(message)
+            return peer
+        }
         dataSource.transceiver.send(payload, to: viewModel.selectedPeers)
     }
 }

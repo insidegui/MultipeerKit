@@ -3,7 +3,7 @@ import MultipeerConnectivity.MCPeerID
 import CommonCrypto
 
 /// Represents a remote peer.
-public struct Peer: Hashable, Identifiable {
+public struct Peer: Identifiable {
 
     let underlyingPeer: MCPeerID
 
@@ -19,9 +19,7 @@ public struct Peer: Hashable, Identifiable {
     /// `true` if we are currently connected to this peer.
     public internal(set) var isConnected: Bool
 
-}
-
-extension Peer {
+    public var userInfo: [String: Any]
 
     init(peer: MCPeerID, discoveryInfo: [String: String]?) throws {
         /**
@@ -36,8 +34,32 @@ extension Peer {
         self.name = peer.displayName
         self.discoveryInfo = discoveryInfo
         self.isConnected = false
+        self.userInfo = [:]
     }
 
+}
+
+extension Peer: Equatable {
+
+    public static func == (lhs: Peer, rhs: Peer) -> Bool {
+        lhs.underlyingPeer == rhs.underlyingPeer &&
+        lhs.id == rhs.id &&
+        lhs.name == rhs.name &&
+        lhs.discoveryInfo == rhs.discoveryInfo &&
+        lhs.isConnected == rhs.isConnected
+    }
+
+}
+
+extension Peer: Hashable {
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(underlyingPeer)
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(discoveryInfo)
+        hasher.combine(isConnected)
+    }
 }
 
 fileprivate extension Data {
