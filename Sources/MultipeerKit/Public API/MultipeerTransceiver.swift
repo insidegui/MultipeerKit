@@ -29,7 +29,7 @@ public final class MultipeerTransceiver {
         return connection.getLocalPeer()
     }
 
-    @available(*, deprecated, message: "If you need the String Id, you can get it from localPeer.id instead.")
+    @available(*, deprecated, renamed: "localPeer.id")
     public var localPeerId: String? {
         return localPeer?.id
     }
