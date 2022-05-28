@@ -36,8 +36,8 @@ final class MockMultipeerConnection: MultipeerProtocol {
         
     }
     
-    func getLocalPeerId() -> String? {
-        return localPeer.id
+    func getLocalPeer() -> Peer? {
+        return localPeer
     }
 
 }

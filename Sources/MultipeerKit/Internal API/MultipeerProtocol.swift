@@ -17,6 +17,6 @@ protocol MultipeerProtocol: AnyObject {
     func broadcast(_ data: Data) throws
     func send(_ data: Data, to peers: [Peer]) throws
     
-    func getLocalPeerId() -> String?
+    func getLocalPeer() -> Peer?
 
 }
