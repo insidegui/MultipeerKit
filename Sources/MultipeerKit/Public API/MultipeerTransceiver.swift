@@ -25,10 +25,15 @@ public final class MultipeerTransceiver {
     public var peerDisconnected: (Peer) -> Void = { _ in }
     
     /// The current device's peer id
-    public var localPeerId: String? {
-        return connection.getLocalPeerId()
+    public var localPeer: Peer? {
+        return connection.getLocalPeer()
     }
-    
+
+    @available(*, deprecated, renamed: "localPeer.id")
+    public var localPeerId: String? {
+        return localPeer?.id
+    }
+
     /// All peers currently available for invitation, connection and data transmission.
     public private(set) var availablePeers: [Peer] = [] {
         didSet {
