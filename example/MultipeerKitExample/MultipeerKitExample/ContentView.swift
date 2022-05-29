@@ -7,25 +7,24 @@
 //
 
 import SwiftUI
-import MultipeerKit
 import Combine
 
 final class ViewModel: ObservableObject {
     @Published var message: String = ""
-    @Published var selectedPeers: [Peer] = []
+    @Published var selectedPeers: [ChatPeer] = []
 
-    func toggle(_ peer: Peer) {
-        if selectedPeers.contains(peer) {
-            selectedPeers.remove(at: selectedPeers.firstIndex(of: peer)!)
+    func toggle(_ chatPeer: ChatPeer) {
+        if selectedPeers.contains(chatPeer) {
+            selectedPeers.remove(at: selectedPeers.firstIndex(of: chatPeer)!)
         } else {
-            selectedPeers.append(peer)
+            selectedPeers.append(chatPeer)
         }
     }
 }
 
 struct ContentView: View {
     @ObservedObject private(set) var viewModel = ViewModel()
-    @EnvironmentObject var dataSource: MultipeerDataSource
+    @EnvironmentObject var dataSource: ChatPeerDataSource
 
     @State private var showErrorAlert = false
 
@@ -37,27 +36,30 @@ struct ContentView: View {
                 Button(action: { self.sendToSelectedPeers(self.viewModel.message) }) {
                     Text("SEND")
                 }
+
+                Text("\(dataSource.availablePeers.reduce(0, { $0 + $1.history.count })) message(s) sent")
+                    .foregroundColor(.secondary)
             }
 
             VStack(alignment: .leading) {
                 Text("Peers").font(.system(.headline)).padding()
 
                 List {
-                    ForEach(dataSource.availablePeers) { peer in
+                    ForEach(dataSource.availablePeers) { chatPeer in
                         HStack {
                             Circle()
                                 .frame(width: 12, height: 12)
-                                .foregroundColor(peer.isConnected ? .green : .gray)
+                                .foregroundColor(chatPeer.peer.isConnected ? .green : .gray)
                             
-                            Text(peer.name)
+                            Text(chatPeer.peer.name)
 
                             Spacer()
 
-                            if self.viewModel.selectedPeers.contains(peer) {
+                            if viewModel.selectedPeers.map({ $0.peer }).contains(chatPeer.peer) {
                                 Image(systemName: "checkmark")
                             }
                         }.onTapGesture {
-                            self.viewModel.toggle(peer)
+                            viewModel.toggle(chatPeer)
                         }
                     }
                 }
@@ -73,8 +75,7 @@ struct ContentView: View {
             return
         }
 
-        let payload = ExamplePayload(message: self.viewModel.message)
-        dataSource.transceiver.send(payload, to: viewModel.selectedPeers)
+        dataSource.send(message, to: viewModel.selectedPeers)
     }
 }
 

@@ -33,8 +33,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         return t
     }()
 
-    private lazy var dataSource: MultipeerDataSource = {
-        MultipeerDataSource(transceiver: transceiver)
+    private lazy var dataSource: ChatPeerDataSource = {
+        ChatPeerDataSource(transceiver: transceiver)
     }()
 
     private func notify(with payload: ExamplePayload, peer: Peer) {
