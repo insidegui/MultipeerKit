@@ -3,17 +3,16 @@ import MultipeerConnectivity.MCPeerID
 
 final class MockMultipeerConnection: MultipeerProtocol {
 
-    let localPeer: Peer = {
-        let underlyingPeer = MCPeerID(displayName: "MockPeer")
-        return try! Peer(peer: underlyingPeer, discoveryInfo: nil)
-    }()
+    let localPeer = Peer.mock
 
     var didReceiveData: ((Data, Peer) -> Void)?
     var didFindPeer: ((Peer) -> Void)?
     var didLosePeer: ((Peer) -> Void)?
     var didConnectToPeer: ((Peer) -> Void)?
     var didDisconnectFromPeer: ((Peer) -> Void)?
-    
+    var didStartReceivingResource: ((_ sender: Peer, _ resourceName: String, _ progress: Progress) -> Void)?
+    var didFinishReceivingResource: ((_ sender: Peer, _ resourceName: String, _ result: Result<URL, Error>) -> Void)?
+
     var isRunning = false
 
     func resume() {
@@ -30,6 +29,13 @@ final class MockMultipeerConnection: MultipeerProtocol {
 
     func send(_ data: Data, to peers: [Peer]) throws {
         
+    }
+
+    @available(iOS 13.0, macOS 10.15, *)
+    func send(_ resourceURL: URL, to peer: Peer) -> ResourceUploadStream {
+        AsyncThrowingStream { continuation in
+            continuation.finish()
+        }
     }
 
     func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {

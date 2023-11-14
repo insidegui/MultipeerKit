@@ -10,6 +10,9 @@ public struct MultipeerError: LocalizedError {
     public var localizedDescription: String
 }
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+public typealias ResourceUploadStream = AsyncThrowingStream<Double, Error>
+
 final class MultipeerConnection: NSObject, MultipeerProtocol {
 
     enum Mode: Int, CaseIterable {
@@ -34,6 +37,8 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     var didLosePeer: ((Peer) -> Void)?
     var didConnectToPeer: ((Peer) -> Void)?
     var didDisconnectFromPeer: ((Peer) -> Void)?
+    var didStartReceivingResource: ((_ sender: Peer, _ resourceName: String, _ progress: Progress) -> Void)?
+    var didFinishReceivingResource: ((_ sender: Peer, _ resourceName: String, _ result: Result<URL, Error>) -> Void)?
 
     private var discoveredPeers: [MCPeerID: Peer] = [:]
 
@@ -109,6 +114,44 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
         try session.send(data, toPeers: ids, with: .reliable)
     }
 
+    @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+    func send(_ resourceURL: URL, to peer: Peer) -> ResourceUploadStream {
+        AsyncThrowingStream { [weak self] continuation in
+            guard let self else {
+                return continuation.finish(throwing: CancellationError())
+            }
+
+            guard resourceURL.isFileURL else {
+                return continuation.finish(throwing: MultipeerError(localizedDescription: "Resource must be a local file URL, remote URLs are not supported."))
+            }
+
+            let peerID = peer.underlyingPeer
+
+            /// Ensure resource names are unique even if the file name is the same, while keeping the file name to aid in debugging.
+            let resourceID = "\(UUID().uuidString)-\(resourceURL.lastPathComponent)"
+
+            let progress = session.sendResource(at: resourceURL, withName: resourceID, toPeer: peerID) { error in
+                if let error {
+                    continuation.finish(throwing: error)
+                } else {
+                    continuation.finish()
+                }
+            }
+
+            guard let progress else {
+                return continuation.finish(throwing: MultipeerError(localizedDescription: "Failed to start resource upload."))
+            }
+
+            let cancellable = progress.publisher(for: \.fractionCompleted).sink { progress in
+                continuation.yield(progress)
+            }
+
+            continuation.onTermination = { @Sendable _ in
+                cancellable.cancel()
+            }
+        }
+    }
+
     private var invitationCompletionHandlers: [MCPeerID: InvitationCompletionHandler] = [:]
 
     func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {
@@ -155,10 +198,11 @@ extension MultipeerConnection: MCSessionDelegate {
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        if let peer = try? Peer(peer: peerID, discoveryInfo: nil) {
+        do {
+            let peer = try Peer(peer: peerID, discoveryInfo: nil)
             didReceiveData?(data, peer)
-        } else {
-            os_log("Received data, but cannot create peer for %s", log: log, type: .error, #function, peerID.displayName)
+        } catch {
+            os_log("Received data, but cannot create peer for %@: %{public}@", log: log, type: .error, #function, peerID.displayName, String(describing: error))
         }
     }
 
@@ -168,10 +212,33 @@ extension MultipeerConnection: MCSessionDelegate {
 
     func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
         os_log("%{public}@", log: log, type: .debug, #function)
+
+        do {
+            let peer = try Peer(peer: peerID, discoveryInfo: nil)
+            
+            didStartReceivingResource?(peer, resourceName, progress)
+        } catch {
+            os_log("Started receiving resource, but cannot create peer for %@: %{public}@", log: log, type: .error, #function, peerID.displayName, String(describing: error))
+        }
     }
 
     func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
         os_log("%{public}@", log: log, type: .debug, #function)
+
+        do {
+            let peer = try Peer(peer: peerID, discoveryInfo: nil)
+
+            let result: Result<URL, Error>
+            if let localURL {
+                result = .success(localURL)
+            } else {
+                result = .failure(error ?? MultipeerError(localizedDescription: "Unknown MultipeerConnectivity error."))
+            }
+
+            didFinishReceivingResource?(peer, resourceName, result)
+        } catch {
+            os_log("Finished receiving resource, but cannot create peer for %@: %{public}@", log: log, type: .error, #function, peerID.displayName, String(describing: error))
+        }
     }
 
 }
