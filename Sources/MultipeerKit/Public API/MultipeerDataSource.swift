@@ -11,6 +11,8 @@ public final class MultipeerDataSource: ObservableObject {
 
     public let transceiver: MultipeerTransceiver
 
+    public static let isSwiftUIPreview: Bool = { ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" }()
+
     /// Initializes a new data source.
     /// - Parameter transceiver: The transceiver to be used by this data source.
     /// Note that the data source will set ``MultipeerTransceiver/availablePeersDidChange`` on the
@@ -26,7 +28,7 @@ public final class MultipeerDataSource: ObservableObject {
         availablePeers = transceiver.availablePeers
 
         #if DEBUG
-        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+        if Self.isSwiftUIPreview {
             availablePeers.append(.mock)
         }
         #endif

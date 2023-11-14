@@ -45,6 +45,10 @@ public final class MultipeerTransceiver {
     /// Called on the main queue when the connection with a peer is interrupted.
     public var peerDisconnected: (Peer) -> Void = { _ in }
 
+    /// An `AsyncStream` provided by the transceiver when the local peer is sending a resource to a remote peer.
+    @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+    public typealias ResourceUploadStream = AsyncThrowingStream<Double, Error>
+
     /// An `AsyncStream` of ``MultipeerTransceiver/ResourceDownloadEvent``.
     @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
     public typealias ResourceEventStream = AsyncStream<ResourceDownloadEvent>
@@ -132,11 +136,30 @@ public final class MultipeerTransceiver {
     public func receive<T: Codable>(_ type: T.Type, using closure: @escaping (_ payload: T, _ sender: Peer) -> Void) {
         MultipeerMessage.register(type, for: String(describing: type), closure: closure)
     }
+    
+    /// Unregisters a receiver previously registered using ``receive(_:using:)``.
+    /// - Parameter type: The type of payload to unregister the receiver for.
+    ///
+    /// Use this method when you no longer wish to receive callbacks for a specific payload type.
+    /// 
+    /// In most applications, there will be no need to unregister a receiver, since you can just register the new one
+    /// by calling ``receive(_:using:)`` again.
+    public func unregisterReceiver<T: Codable>(for type: T.Type) {
 
+    }
+
+    /// Registers a closure to be called whenever a remote peer sends a file resource to the local peer.
+    /// - Parameter closure: A closure to be called when a remote peer sends a file resource.
+    ///
+    /// Use this method to register the local peer to receive file resources from remote peers.
+    /// 
+    /// Unlike typed payload messages, file resources are designed for transferring potentially large files,
+    /// and the stream type received in the callback can be used to report progress in your app's UI during transfers.
+    ///
+    /// - note: There can only be a single resource receiver registered at any given time with the transceiver.
+    /// Calling this method again after registering a resource receiver replaces the existing callback.
     @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
     public func receiveResources(using closure: @escaping ResourceEventHandler) {
-        assert(resourceEventHandler == nil, "Can't register more than one resource event receiver")
-
         resourceEventHandler = closure
     }
 
@@ -206,8 +229,11 @@ public final class MultipeerTransceiver {
     ///     print("Upload failed: \(error)")
     /// }
     /// ```
+    ///
+    /// - Note: Make sure your app registers for resources by calling ``receiveResources(using:)`` on the transceiver.
+    /// If MultipeerKit receives a resource from a remote peer without having a resource receiver registered, it throws an assert in debug builds and logs a fault to the console.
     @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
-    public func send(_ resourceURL: URL, to peer: Peer) -> ResourceUploadStream {
+    public func send(_ resourceURL: URL, to peer: Peer) -> MultipeerTransceiver.ResourceUploadStream {
         os_log("%{public}@", log: log, type: .debug, #function)
 
         return connection.send(resourceURL, to: peer)
@@ -309,6 +335,7 @@ public final class MultipeerTransceiver {
         }
 
         let (stream, continuation) = ResourceEventStream.makeStream()
+        resourceContinuations[resourceName] = continuation
 
         resourceEventHandler(stream)
 

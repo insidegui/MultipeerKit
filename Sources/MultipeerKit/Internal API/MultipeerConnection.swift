@@ -10,9 +10,6 @@ public struct MultipeerError: LocalizedError {
     public var localizedDescription: String
 }
 
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
-public typealias ResourceUploadStream = AsyncThrowingStream<Double, Error>
-
 final class MultipeerConnection: NSObject, MultipeerProtocol {
 
     enum Mode: Int, CaseIterable {
@@ -115,7 +112,7 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     }
 
     @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
-    func send(_ resourceURL: URL, to peer: Peer) -> ResourceUploadStream {
+    func send(_ resourceURL: URL, to peer: Peer) -> MultipeerTransceiver.ResourceUploadStream {
         AsyncThrowingStream { [weak self] continuation in
             guard let self else {
                 return continuation.finish(throwing: CancellationError())

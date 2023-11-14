@@ -20,7 +20,7 @@ protocol MultipeerProtocol: AnyObject {
     func send(_ data: Data, to peers: [Peer]) throws
 
     @available(iOS 13.0, macOS 10.15, *)
-    func send(_ resourceURL: URL, to peer: Peer) -> ResourceUploadStream
+    func send(_ resourceURL: URL, to peer: Peer) -> MultipeerTransceiver.ResourceUploadStream
 
     func getLocalPeer() -> Peer?
 

@@ -11,7 +11,15 @@ struct ExamplesScreen: View {
                 .tabItem {
                     Label("Chat", systemImage: "bubble.fill")
                 }
-            AirDropScreen()
+            Group {
+                if #available(iOS 17.0, *) {
+                    AirDropScreen(transceiver: dataSource.transceiver, peer: peer.observedPeer)
+                } else {
+                    Text("This demo requires iOS 17 or later.")
+                        .foregroundStyle(.secondary)
+                        .navigationTitle(Text("AirDrop"))
+                }
+            }
                 .tabItem {
                     Label("AirDrop", systemImage: "dot.radiowaves.right")
                 }

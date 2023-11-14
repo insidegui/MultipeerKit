@@ -32,7 +32,7 @@ final class MockMultipeerConnection: MultipeerProtocol {
     }
 
     @available(iOS 13.0, macOS 10.15, *)
-    func send(_ resourceURL: URL, to peer: Peer) -> ResourceUploadStream {
+    func send(_ resourceURL: URL, to peer: Peer) -> MultipeerTransceiver.ResourceUploadStream {
         AsyncThrowingStream { continuation in
             continuation.finish()
         }
