@@ -239,7 +239,7 @@ public final class MultipeerTransceiver {
     ///
     /// - warning: If the invitation parameter is not set to `.none`, you shouldn't call this method,
     /// since the transceiver does the inviting automatically.
-    public func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {
+    public func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval = 30, completion: InvitationCompletionHandler?) {
         connection.invite(peer, with: context, timeout: timeout, completion: completion)
     }
 

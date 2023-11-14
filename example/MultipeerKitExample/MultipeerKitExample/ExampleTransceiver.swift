@@ -6,7 +6,7 @@ extension MultipeerTransceiver {
         var config = MultipeerConfiguration.default
         config.serviceType = "MPKitDemo"
 
-        config.security.encryptionPreference = .optional
+        config.security.encryptionPreference = .none
 
         let t = MultipeerTransceiver(configuration: config)
 

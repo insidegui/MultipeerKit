@@ -35,6 +35,24 @@ public final class MultipeerDataSource: ObservableObject {
     /// Peers currently available for invitation, connection and data transmission.
     @Published public private(set) var availablePeers: [Peer] = []
 
+    /// Manually invites a peer.
+    ///
+    /// For more details, read the documentation for ``MultipeerTransceiver/invite(_:with:timeout:completion:)``.
+    public func invite(_ peer: Peer, with data: Data? = nil, timeout: TimeInterval = 30) async throws {
+        try await withCheckedThrowingContinuation { [weak self] (continuation: CheckedContinuation<Void, Error>) in
+            guard let self else { return continuation.resume(throwing: CancellationError()) }
+
+            self.transceiver.invite(peer, with: data, timeout: timeout) { result in
+                switch result {
+                case .success:
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
     /// Returns an ``ObservablePeer`` instance that automatically updates when the
     /// specified peer is updated, such as when it connects or disconnects.
     ///
