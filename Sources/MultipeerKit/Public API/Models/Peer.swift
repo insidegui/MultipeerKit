@@ -51,3 +51,11 @@ fileprivate extension Data {
     }
 
 }
+
+public extension Peer {
+    /// A mock peer that can be used for testing or SwiftUI previews.
+    static let mock: Peer = {
+        let underlyingPeer = MCPeerID(displayName: "MockPeer")
+        return try! Peer(peer: underlyingPeer, discoveryInfo: nil)
+    }()
+}

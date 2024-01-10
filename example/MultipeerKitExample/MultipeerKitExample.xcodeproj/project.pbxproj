@@ -3,18 +3,24 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		DDADA096240A83B300842749 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA095240A83B300842749 /* AppDelegate.swift */; };
 		DDADA098240A83B300842749 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA097240A83B300842749 /* SceneDelegate.swift */; };
-		DDADA09A240A83B300842749 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA099240A83B300842749 /* ContentView.swift */; };
+		DDADA09A240A83B300842749 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA099240A83B300842749 /* RootView.swift */; };
 		DDADA09C240A83B400842749 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDADA09B240A83B400842749 /* Assets.xcassets */; };
 		DDADA09F240A83B400842749 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDADA09E240A83B400842749 /* Preview Assets.xcassets */; };
 		DDADA0A2240A83B400842749 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDADA0A0240A83B400842749 /* LaunchScreen.storyboard */; };
 		DDADA0AC240A83FF00842749 /* MultipeerKit in Frameworks */ = {isa = PBXBuildFile; productRef = DDADA0AB240A83FF00842749 /* MultipeerKit */; };
-		DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA0AD240A844B00842749 /* ExamplePayload.swift */; };
+		F4BF19E32B03E413004561EA /* PhotoPickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BF19E22B03E413004561EA /* PhotoPickerViewModel.swift */; };
+		F4BF19E52B03E9CD004561EA /* URL+Archive.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BF19E42B03E9CD004561EA /* URL+Archive.swift */; };
+		F4F675DE2B03C38000E3A652 /* ExampleTransceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F675DD2B03C38000E3A652 /* ExampleTransceiver.swift */; };
+		F4F675E02B03C51600E3A652 /* PeerSelectionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F675DF2B03C51600E3A652 /* PeerSelectionScreen.swift */; };
+		F4F675E22B03C54E00E3A652 /* ExamplesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F675E12B03C54E00E3A652 /* ExamplesScreen.swift */; };
+		F4F675E42B03C56700E3A652 /* ChatScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F675E32B03C56700E3A652 /* ChatScreen.swift */; };
+		F4F675E62B03C57D00E3A652 /* AirDropScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F675E52B03C57D00E3A652 /* AirDropScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,13 +28,19 @@
 		DDADA092240A83B300842749 /* MultipeerKitExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MultipeerKitExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDADA095240A83B300842749 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DDADA097240A83B300842749 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		DDADA099240A83B300842749 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		DDADA099240A83B300842749 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		DDADA09B240A83B400842749 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DDADA09E240A83B400842749 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		DDADA0A1240A83B400842749 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DDADA0A3240A83B400842749 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DDADA0A9240A83F800842749 /* MultipeerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MultipeerKit; path = ../..; sourceTree = "<group>"; };
-		DDADA0AD240A844B00842749 /* ExamplePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamplePayload.swift; sourceTree = "<group>"; };
+		F4BF19E22B03E413004561EA /* PhotoPickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPickerViewModel.swift; sourceTree = "<group>"; };
+		F4BF19E42B03E9CD004561EA /* URL+Archive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Archive.swift"; sourceTree = "<group>"; };
+		F4F675DD2B03C38000E3A652 /* ExampleTransceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleTransceiver.swift; sourceTree = "<group>"; };
+		F4F675DF2B03C51600E3A652 /* PeerSelectionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeerSelectionScreen.swift; sourceTree = "<group>"; };
+		F4F675E12B03C54E00E3A652 /* ExamplesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamplesScreen.swift; sourceTree = "<group>"; };
+		F4F675E32B03C56700E3A652 /* ChatScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatScreen.swift; sourceTree = "<group>"; };
+		F4F675E52B03C57D00E3A652 /* AirDropScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,10 +77,16 @@
 			isa = PBXGroup;
 			children = (
 				DD2DAF67240B04DF003D7A4D /* MultipeerKitExample.entitlements */,
-				DDADA0AD240A844B00842749 /* ExamplePayload.swift */,
 				DDADA095240A83B300842749 /* AppDelegate.swift */,
+				F4F675DD2B03C38000E3A652 /* ExampleTransceiver.swift */,
+				DDADA099240A83B300842749 /* RootView.swift */,
+				F4F675DF2B03C51600E3A652 /* PeerSelectionScreen.swift */,
+				F4F675E12B03C54E00E3A652 /* ExamplesScreen.swift */,
+				F4F675E32B03C56700E3A652 /* ChatScreen.swift */,
+				F4F675E52B03C57D00E3A652 /* AirDropScreen.swift */,
+				F4BF19E22B03E413004561EA /* PhotoPickerViewModel.swift */,
+				F4BF19E42B03E9CD004561EA /* URL+Archive.swift */,
 				DDADA097240A83B300842749 /* SceneDelegate.swift */,
-				DDADA099240A83B300842749 /* ContentView.swift */,
 				DDADA09B240A83B400842749 /* Assets.xcassets */,
 				DDADA0A0240A83B400842749 /* LaunchScreen.storyboard */,
 				DDADA0A3240A83B400842749 /* Info.plist */,
@@ -121,8 +139,9 @@
 		DDADA08A240A83B300842749 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1140;
-				LastUpgradeCheck = 1140;
+				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "Guilherme Rambo";
 				TargetAttributes = {
 					DDADA091240A83B300842749 = {
@@ -167,9 +186,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				DDADA096240A83B300842749 /* AppDelegate.swift in Sources */,
-				DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */,
+				F4F675E62B03C57D00E3A652 /* AirDropScreen.swift in Sources */,
+				F4BF19E32B03E413004561EA /* PhotoPickerViewModel.swift in Sources */,
+				F4F675E22B03C54E00E3A652 /* ExamplesScreen.swift in Sources */,
+				F4BF19E52B03E9CD004561EA /* URL+Archive.swift in Sources */,
+				F4F675E42B03C56700E3A652 /* ChatScreen.swift in Sources */,
+				F4F675E02B03C51600E3A652 /* PeerSelectionScreen.swift in Sources */,
 				DDADA098240A83B300842749 /* SceneDelegate.swift in Sources */,
-				DDADA09A240A83B300842749 /* ContentView.swift in Sources */,
+				DDADA09A240A83B300842749 /* RootView.swift in Sources */,
+				F4F675DE2B03C38000E3A652 /* ExampleTransceiver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,6 +238,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -223,6 +249,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -273,6 +300,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -283,6 +311,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -305,13 +334,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOL_FRAMEWORKS = SwiftUI;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_ENTITLEMENTS = MultipeerKitExample/MultipeerKitExample.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"MultipeerKitExample/Preview Content\"";
 				DEVELOPMENT_TEAM = 8C7439RJLG;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MultipeerKitExample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -328,13 +359,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOL_FRAMEWORKS = SwiftUI;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_ENTITLEMENTS = MultipeerKitExample/MultipeerKitExample.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"MultipeerKitExample/Preview Content\"";
 				DEVELOPMENT_TEAM = 8C7439RJLG;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MultipeerKitExample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
