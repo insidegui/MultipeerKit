@@ -108,6 +108,12 @@ public final class MultipeerTransceiver {
     /// Sends a message to all connected peers.
     /// - Parameter payload: The payload to be sent.
     public func broadcast<T: Encodable>(_ payload: T) {
+        try? broadcastWithError(payload)
+    }
+
+    /// Sends a message to all connected peers.
+    /// - Parameter payload: The payload to be sent.
+    public func broadcastWithError<T: Encodable>(_ payload: T) throws {
         MultipeerMessage.register(T.self, for: String(describing: T.self))
 
         do {
@@ -118,6 +124,7 @@ public final class MultipeerTransceiver {
             try connection.broadcast(data)
         } catch {
             os_log("Failed to send payload %@: %{public}@", log: self.log, type: .error, String(describing: payload), String(describing: error))
+            throw error
         }
     }
 
@@ -126,6 +133,14 @@ public final class MultipeerTransceiver {
     ///   - payload: The payload to be sent.
     ///   - peers: An array of peers to send the message to.
     public func send<T: Encodable>(_ payload: T, to peers: [Peer]) {
+        try? sendWithError(payload, to: peers)
+    }
+    
+    /// Sends a message to a specific set of peers.
+    /// - Parameters:
+    ///   - payload: The payload to be sent.
+    ///   - peers: An array of peers to send the message to.
+    public func sendWithError<T: Encodable>(_ payload: T, to peers: [Peer]) throws {
         MultipeerMessage.register(T.self, for: String(describing: T.self))
         
         do {
@@ -136,6 +151,7 @@ public final class MultipeerTransceiver {
             try connection.send(data, to: peers)
         } catch {
             os_log("Failed to send payload %@: %{public}@", log: self.log, type: .error, String(describing: payload), String(describing: error))
+            throw error
         }
     }
 

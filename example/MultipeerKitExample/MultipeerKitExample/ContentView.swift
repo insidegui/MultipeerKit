@@ -74,7 +74,11 @@ struct ContentView: View {
         }
 
         let payload = ExamplePayload(message: self.viewModel.message)
-        dataSource.transceiver.send(payload, to: viewModel.selectedPeers)
+        do {
+            try dataSource.transceiver.sendWithError(payload, to: viewModel.selectedPeers)
+        } catch _ {
+            showErrorAlert = true
+        }
     }
 }
 
