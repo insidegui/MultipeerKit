@@ -12,10 +12,10 @@ public final class MultipeerTransceiver {
     /// Called on the main queue when available peers have changed (new peers discovered or peers removed).
     public var availablePeersDidChange: ([Peer]) -> Void = { _ in }
 
-    /// Called on the main queue when a new peer discovered.
+    /// Called on the main queue when a new peer is discovered.
     public var peerAdded: (Peer) -> Void = { _ in }
 
-    /// Called on the main queue when a peer removed.
+    /// Called on the main queue when a previously discovered peer is no longer seen nearby.
     public var peerRemoved: (Peer) -> Void = { _ in }
 
     /// Called on the main queue when a connection is established with a peer.
@@ -168,12 +168,27 @@ public final class MultipeerTransceiver {
     public func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {
         connection.invite(peer, with: context, timeout: timeout, completion: completion)
     }
+    
+    /// Describes an event that has occurred with a remote peer.
+    /// You can receive a stream of events by `await`ing on the ``peerEvents`` async sequence property.
+    public enum PeerEvent: Hashable {
+        /// A new peer has been discovered.
+        case found(Peer)
+        /// A previously discovered peer is no longer detected nearby.
+        case lost(Peer)
+        /// A peer is now connected.
+        case connected(Peer)
+        /// A peer is now disconnected.
+        case disconnected(Peer)
+    }
 
     private func handlePeerAdded(_ peer: Peer) {
         guard !availablePeers.contains(peer) else { return }
 
         availablePeers.append(peer)
         peerAdded(peer)
+        
+        peerEventOccurred(.found(peer))
     }
 
     private func handlePeerRemoved(_ peer: Peer) {
@@ -181,18 +196,24 @@ public final class MultipeerTransceiver {
 
         availablePeers.remove(at: idx)
         peerRemoved(peer)
+        
+        peerEventOccurred(.lost(peer))
     }
 
     private func handlePeerConnected(_ peer: Peer) {
         setConnected(true, on: peer)
         
         peerConnected(peer)
+        
+        peerEventOccurred(.connected(peer))
     }
 
     private func handlePeerDisconnected(_ peer: Peer) {
         setConnected(false, on: peer)
         
         peerDisconnected(peer)
+        
+        peerEventOccurred(.disconnected(peer))
     }
 
     private func setConnected(_ connected: Bool, on peer: Peer) {
@@ -202,5 +223,62 @@ public final class MultipeerTransceiver {
         mutablePeer.isConnected = connected
         availablePeers[idx] = mutablePeer
     }
+    
+    // MARK: - Swift Concurrency Support
+    
+    private typealias PeerEventCallback = (PeerEvent) -> Void
+    
+    private var internalPeerEventCallbacks: [UUID: PeerEventCallback] = [:]
+   
+    private func addInternalPeerEventsCallback(with block: @escaping PeerEventCallback) -> UUID {
+        let id = UUID()
+        internalPeerEventCallbacks[id] = block
+        return id
+    }
+    
+    private func peerEventOccurred(_ event: PeerEvent) {
+        DispatchQueue.main.async {
+            self.internalPeerEventCallbacks.values.forEach { $0(event) }
+        }
+    }
 
+}
+
+@available(tvOS 13.0, *)
+@available(iOS 13.0, *)
+@available(macOS 10.15, *)
+public extension MultipeerTransceiver {
+    
+    /// An `AsyncStream` that you can `await` on in order to receive peer discovery and connection events as they occur.
+    ///
+    /// ## Example:
+    ///
+    /// ```swift
+    /// for await event in transceiver.peerEvents {
+    ///     switch event {
+    ///     case .found(let peer):
+    ///         print("Peer \(peer.name) was found.")
+    ///     case .lost(let peer):
+    ///         print("Peer \(peer.name) was lost.")
+    ///     case .connected(let peer):
+    ///         print("Peer \(peer.name) is now connected.")
+    ///     case .disconnected(let peer):
+    ///         print("Peer \(peer.name) is now disconnected.")
+    ///     }
+    /// }
+    /// ```
+    var peerEvents: AsyncStream<PeerEvent> {
+        AsyncStream { [weak self] continuation in
+            guard let self = self else { return }
+            
+            let id = self.addInternalPeerEventsCallback { event in
+                continuation.yield(event)
+            }
+            
+            continuation.onTermination = { @Sendable _ in
+                self.internalPeerEventCallbacks[id] = nil
+            }
+        }
+    }
+    
 }
