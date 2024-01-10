@@ -26,7 +26,7 @@ extension MCPeerID {
 
 }
 
-#if os(iOS) || os(tvOS) || os(visionOS)
+#if canImport(UIKit)
 import UIKit
 
 public extension MCPeerID {
