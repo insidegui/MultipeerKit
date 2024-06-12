@@ -39,5 +39,31 @@ final class MockMultipeerConnection: MultipeerProtocol {
     func getLocalPeer() -> Peer? {
         return localPeer
     }
+    
+    @discardableResult func findFakePeer(with id: String) -> Peer {
+        let fakePeer = Peer(
+            underlyingPeer: MCPeerID(displayName: id),
+            id: id,
+            name: id,
+            discoveryInfo: nil,
+            isConnected: false
+        )
+        
+        didFindPeer?(fakePeer)
+        
+        return fakePeer
+    }
+    
+    func loseFakePeer(_ fakePeer: Peer) {
+        didLosePeer?(fakePeer)
+    }
+    
+    func connectFakePeer(_ fakePeer: Peer) {
+        didConnectToPeer?(fakePeer)
+    }
+    
+    func disconnectFakePeer(_ fakePeer: Peer) {
+        didDisconnectFromPeer?(fakePeer)
+    }
 
 }
