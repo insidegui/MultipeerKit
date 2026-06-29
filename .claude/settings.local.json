@@ -8,7 +8,10 @@
       "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=iOS' -quiet build)",
       "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=iOS' build)",
       "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=tvOS' build)",
-      "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=visionOS' build)"
+      "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=visionOS' build)",
+      "Bash(/usr/bin/grep IPHONEOS_DEPLOYMENT_TARGET *)",
+      "Bash(/usr/bin/sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 13.4;/IPHONEOS_DEPLOYMENT_TARGET = 16.0;/g' /Users/insidegui/Developer/_projects/MultipeerKit/example/MultipeerKitExample/MultipeerKitExample.xcodeproj/project.pbxproj)",
+      "Bash(xcodebuild -project MultipeerKitExample.xcodeproj -scheme MultipeerKitExample -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO)"
     ]
   }
 }

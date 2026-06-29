@@ -128,6 +128,10 @@ final class MultipeerConnection: MultipeerProtocol {
            let secIdentity = sec_identity_create(identity)
         {
             sec_protocol_options_set_local_identity(options.securityProtocolOptions, secIdentity)
+        } else {
+            os_log("encryptionPreference is .required but no SecIdentity was provided in MultipeerConfiguration.Security.identity. TLS handshakes will fail; set an identity or use .none encryption.",
+                   log: log,
+                   type: .fault)
         }
 
         return options
@@ -181,7 +185,7 @@ final class MultipeerConnection: MultipeerProtocol {
             guard let self = self, let conn = conn else { return }
             self.pendingIncomingConnections[key] = nil
             if let peerID = conn.peer?.id {
-                self.handleConnectionLost(peerID: peerID)
+                self.handleConnectionLost(peerID: peerID, connection: conn)
             }
         }
 
@@ -202,6 +206,31 @@ final class MultipeerConnection: MultipeerProtocol {
             didFindPeer?(peer)
         }
 
+        // Simultaneous-connect resolution: when both peers discover each other
+        // at the same time, both invite, and each side ends up with both an
+        // outgoing connection (in `connections`) and an incoming one (in
+        // `pendingIncomingConnections`). To keep both sides agreeing on the
+        // same physical link, the connection initiated by the peer with the
+        // lexicographically smaller id wins.
+        if let existing = connections[hello.id], existing !== conn {
+            let shouldKeepExisting: Bool
+            if existing.isInitiator {
+                shouldKeepExisting = me.id < hello.id
+            } else {
+                shouldKeepExisting = true
+            }
+
+            if shouldKeepExisting {
+                conn.sendReject()
+                conn.cancel()
+                pendingIncomingConnections[ObjectIdentifier(conn)] = nil
+                return
+            } else {
+                existing.cancel()
+                connections[hello.id] = nil
+            }
+        }
+
         configuration.security.invitationHandler(peer, hello.context, { [weak self, weak conn] decision in
             guard let self = self else { return }
             self.queue.async {
@@ -211,11 +240,6 @@ final class MultipeerConnection: MultipeerProtocol {
                 if decision {
                     conn.sendAccept()
                     self.pendingIncomingConnections[key] = nil
-
-                    if let existing = self.connections[peer.id], existing !== conn {
-                        existing.cancel()
-                    }
-
                     self.connections[peer.id] = conn
                     self.markConnected(peer.id)
                 } else {
@@ -377,8 +401,9 @@ final class MultipeerConnection: MultipeerProtocol {
             self.didReceiveData?(data, peer)
         }
 
-        conn.didDisconnect = { [weak self] in
-            self?.handleConnectionLost(peerID: peer.id)
+        conn.didDisconnect = { [weak self, weak conn] in
+            guard let self = self, let conn = conn else { return }
+            self.handleConnectionLost(peerID: peer.id, connection: conn)
         }
 
         conn.start()
@@ -417,7 +442,12 @@ final class MultipeerConnection: MultipeerProtocol {
         }
     }
 
-    private func handleConnectionLost(peerID: String) {
+    private func handleConnectionLost(peerID: String, connection: PeerConnection) {
+        // Only react if the connection that disconnected is still the one we
+        // consider "live" for this peer. Otherwise this is a leftover from
+        // simultaneous-connect resolution and should be ignored.
+        guard connections[peerID] === connection else { return }
+
         connections[peerID] = nil
 
         guard var peer = discoveredPeers[peerID] else { return }
