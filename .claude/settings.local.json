@@ -19,7 +19,14 @@
       "Bash(/usr/bin/head -40)",
       "Bash(/usr/bin/grep -E \"error:|warning:|BUILD\")",
       "Bash(/usr/bin/head -30)",
-      "Bash(/usr/bin/tail -6)"
+      "Bash(/usr/bin/tail -6)",
+      "Bash(/usr/bin/tail -5)",
+      "Bash(/usr/bin/tail -3)",
+      "Bash(/usr/bin/grep -E \"error:|BUILD\")",
+      "Bash(/usr/bin/head -10)",
+      "Bash(/usr/bin/tail -20)",
+      "Bash(/usr/bin/tail -8)",
+      "Bash(/usr/bin/head -5)"
     ]
   }
 }

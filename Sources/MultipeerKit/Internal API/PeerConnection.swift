@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import CryptoKit
 import os.log
 
 /// Wraps an `NWConnection` and applies MultipeerKit's wire framing.
@@ -12,6 +13,11 @@ import os.log
 ///
 /// A new connection sends a `hello` frame first, then waits for an `accept`
 /// or `reject` frame before either side starts exchanging `data` frames.
+///
+/// When `usesEncryption` is true, the handshake also performs an ephemeral
+/// X25519 key agreement (initiator's public key in HELLO, responder's in
+/// ACCEPT). Both sides HKDF-derive a session key and seal every subsequent
+/// DATA frame with ChaCha20-Poly1305.
 final class PeerConnection {
 
     enum FrameType: UInt8 {
@@ -23,19 +29,16 @@ final class PeerConnection {
 
     private static let headerSize = 5
     private static let maxFramePayload = 8 * 1024 * 1024
+    private static let publicKeyByteCount = 32
 
     let connection: NWConnection
     let isInitiator: Bool
+    let usesEncryption: Bool
     let queue: DispatchQueue
     let log: OSLog
 
-    /// The peer this connection is associated with. The initiator side knows
-    /// this up-front from browser discovery; the receiver side learns it from
-    /// the incoming hello frame.
     var peer: Peer?
 
-    /// `true` once both sides have agreed on the invitation and are ready to
-    /// exchange data frames.
     private(set) var isHandshakeComplete = false
 
     var didBecomeReady: (() -> Void)?
@@ -48,28 +51,75 @@ final class PeerConnection {
     private var receiveBuffer = Data()
     private var hasNotifiedDisconnect = false
 
+    private var localKeyAgreement: Curve25519.KeyAgreement.PrivateKey?
+    private var sessionKey: SymmetricKey?
+
     init(connection: NWConnection,
          isInitiator: Bool,
+         usesEncryption: Bool,
          queue: DispatchQueue,
          log: OSLog)
     {
         self.connection = connection
         self.isInitiator = isInitiator
+        self.usesEncryption = usesEncryption
         self.queue = queue
         self.log = log
+
+        if usesEncryption {
+            self.localKeyAgreement = Curve25519.KeyAgreement.PrivateKey()
+        }
+    }
+
+    var localPublicKeyData: Data? {
+        localKeyAgreement?.publicKey.rawRepresentation
+    }
+
+    /// Returns true if a shared session key was established (or if encryption
+    /// is disabled and no key is needed).
+    @discardableResult
+    func deriveSessionKey(fromPeerPublicKey peerPublicKey: Data) -> Bool {
+        guard usesEncryption else { return true }
+        guard let local = localKeyAgreement else { return false }
+        guard peerPublicKey.count == Self.publicKeyByteCount else {
+            os_log("Peer ephemeral key has wrong length %d", log: log, type: .error, peerPublicKey.count)
+            return false
+        }
+
+        do {
+            let pub = try Curve25519.KeyAgreement.PublicKey(rawRepresentation: peerPublicKey)
+            let shared = try local.sharedSecretFromKeyAgreement(with: pub)
+            sessionKey = shared.hkdfDerivedSymmetricKey(
+                using: SHA256.self,
+                salt: Data("codes.rambo.MultipeerKit.session.salt".utf8),
+                sharedInfo: Data("codes.rambo.MultipeerKit.session.v1".utf8),
+                outputByteCount: 32
+            )
+            return true
+        } catch {
+            os_log("Key agreement failed: %{public}@", log: log, type: .error, String(describing: error))
+            return false
+        }
     }
 
     func start() {
+        let role = isInitiator ? "outgoing" : "incoming"
         connection.stateUpdateHandler = { [weak self] state in
             guard let self = self else { return }
             switch state {
+            case .preparing:
+                os_log("%{public}@ connection preparing", log: self.log, type: .debug, role)
+            case .waiting(let error):
+                os_log("%{public}@ connection waiting: %{public}@", log: self.log, type: .info, role, String(describing: error))
             case .ready:
+                os_log("%{public}@ connection ready", log: self.log, type: .info, role)
                 self.didBecomeReady?()
                 self.startReceive()
             case .failed(let error):
-                os_log("Connection failed: %{public}@", log: self.log, type: .error, String(describing: error))
+                os_log("%{public}@ connection failed: %{public}@", log: self.log, type: .error, role, String(describing: error))
                 self.notifyDisconnect()
             case .cancelled:
+                os_log("%{public}@ connection cancelled", log: self.log, type: .debug, role)
                 self.notifyDisconnect()
             default:
                 break
@@ -154,6 +204,17 @@ final class PeerConnection {
             }
             didReceiveHello?(hello)
         case .accept:
+            if usesEncryption {
+                guard payload.count == Self.publicKeyByteCount else {
+                    os_log("ACCEPT frame missing ephemeral public key (got %d bytes)", log: log, type: .error, payload.count)
+                    cancel()
+                    return
+                }
+                guard deriveSessionKey(fromPeerPublicKey: payload) else {
+                    cancel()
+                    return
+                }
+            }
             isHandshakeComplete = true
             didReceiveAccept?()
         case .reject:
@@ -163,12 +224,35 @@ final class PeerConnection {
                 os_log("Received data frame before handshake completed", log: log, type: .error)
                 return
             }
+            handleDataPayload(payload)
+        }
+    }
+
+    private func handleDataPayload(_ payload: Data) {
+        if let key = sessionKey {
+            do {
+                let sealed = try ChaChaPoly.SealedBox(combined: payload)
+                let plaintext = try ChaChaPoly.open(sealed, using: key)
+                didReceiveData?(plaintext)
+            } catch {
+                os_log("Failed to decrypt data frame: %{public}@", log: log, type: .error, String(describing: error))
+            }
+        } else {
             didReceiveData?(payload)
         }
     }
 
-    func sendHello(_ hello: HandshakeMessage) {
-        guard let data = try? JSONEncoder().encode(hello) else {
+    // MARK: - Sending
+
+    func sendHello(id: String, name: String, discoveryInfo: [String: String]?, context: Data?) {
+        let message = HandshakeMessage(
+            id: id,
+            name: name,
+            discoveryInfo: discoveryInfo,
+            context: context,
+            ephemeralPublicKey: usesEncryption ? localPublicKeyData : nil
+        )
+        guard let data = try? JSONEncoder().encode(message) else {
             os_log("Failed to encode hello frame", log: log, type: .error)
             return
         }
@@ -177,7 +261,8 @@ final class PeerConnection {
 
     func sendAccept() {
         isHandshakeComplete = true
-        sendFrame(type: .accept, payload: Data())
+        let payload = (usesEncryption ? localPublicKeyData : nil) ?? Data()
+        sendFrame(type: .accept, payload: payload)
     }
 
     func sendReject() {
@@ -185,7 +270,19 @@ final class PeerConnection {
     }
 
     func sendData(_ data: Data) {
-        sendFrame(type: .data, payload: data)
+        let payload: Data
+        if let key = sessionKey {
+            do {
+                let sealed = try ChaChaPoly.seal(data, using: key)
+                payload = sealed.combined
+            } catch {
+                os_log("Failed to encrypt data frame: %{public}@", log: log, type: .error, String(describing: error))
+                return
+            }
+        } else {
+            payload = data
+        }
+        sendFrame(type: .data, payload: payload)
     }
 
     private func sendFrame(type: FrameType, payload: Data) {

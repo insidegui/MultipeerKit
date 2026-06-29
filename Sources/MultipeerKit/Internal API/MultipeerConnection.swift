@@ -1,6 +1,5 @@
 import Foundation
 import Network
-import CryptoKit
 import os.log
 
 /// The completion handler called when the remote peer responds to a manual invite initiated
@@ -106,70 +105,55 @@ final class MultipeerConnection: MultipeerProtocol {
 
     // MARK: - Networking parameters
 
+    /// Whether we want to encrypt application traffic. When a `SecIdentity`
+    /// is supplied, encryption is delegated to TLS at the transport layer.
+    /// Otherwise, MultipeerKit performs an X25519/ChaCha20-Poly1305 handshake
+    /// inside `PeerConnection`.
+    private var encryptionRequested: Bool {
+        switch configuration.security.encryptionPreference {
+        case .none: return false
+        default: return true
+        }
+    }
+
+    /// True when the encryption work should be done by `PeerConnection` at
+    /// the application layer rather than by TLS underneath.
+    private var usesApplicationLayerEncryption: Bool {
+        encryptionRequested && configuration.security.identity == nil
+    }
+
     private func makeParameters() -> NWParameters {
         let parameters: NWParameters
 
-        switch configuration.security.encryptionPreference {
-        case .none:
+        if let tlsOptions = makeTLSOptionsIfAppropriate() {
+            parameters = NWParameters(tls: tlsOptions, tcp: NWProtocolTCP.Options())
+        } else {
             parameters = NWParameters(tls: nil, tcp: NWProtocolTCP.Options())
-        default:
-            // Covers both .required and the deprecated .optional, which the
-            // Network framework cannot honour distinctly.
-            parameters = NWParameters(tls: makeTLSOptions(), tcp: NWProtocolTCP.Options())
         }
 
+        // Enable AWDL / Wi-Fi-Direct / Bluetooth-style peer-to-peer paths.
+        // This is what lets MultipeerKit work when the two devices are not
+        // on the same Wi-Fi network, matching the MultipeerConnectivity
+        // semantics the package replaced.
         parameters.includePeerToPeer = true
         return parameters
     }
 
-    private func makeTLSOptions() -> NWProtocolTLS.Options {
+    /// Builds TLS options only when the user supplied a `SecIdentity`. The
+    /// "encryption required without identity" case is handled at the
+    /// application layer in `PeerConnection`, because Apple's TLS PSK path
+    /// has proved unreliable across iOS versions.
+    private func makeTLSOptionsIfAppropriate() -> NWProtocolTLS.Options? {
+        guard encryptionRequested,
+              let identity = configuration.security.identity,
+              let secIdentity = sec_identity_create(identity)
+        else {
+            return nil
+        }
+
         let options = NWProtocolTLS.Options()
-
-        if let identity = configuration.security.identity,
-           let secIdentity = sec_identity_create(identity)
-        {
-            sec_protocol_options_set_local_identity(options.securityProtocolOptions, secIdentity)
-        } else {
-            configureEphemeralPSK(on: options)
-        }
-
+        sec_protocol_options_set_local_identity(options.securityProtocolOptions, secIdentity)
         return options
-    }
-
-    /// Installs a TLS 1.3 pre-shared key on the given options.
-    ///
-    /// The PSK is derived from the configuration's `serviceType` so that every
-    /// peer in the same MultipeerKit session agrees on the same key without any
-    /// user-supplied certificate material. This provides encryption against
-    /// passive eavesdroppers on the local network, but it does *not*
-    /// authenticate individual peers — anyone running the app with the same
-    /// `serviceType` knows the PSK. Apps that need per-peer authentication
-    /// should supply their own `SecIdentity` via `MultipeerConfiguration.Security.identity`.
-    private func configureEphemeralPSK(on tlsOptions: NWProtocolTLS.Options) {
-        let secOptions = tlsOptions.securityProtocolOptions
-
-        let pskBytes = derivePSKMaterial()
-        let identityBytes = Data("MultipeerKit".utf8)
-
-        let pskDispatchData = pskBytes.withUnsafeBytes { ptr in
-            DispatchData(bytes: ptr)
-        }
-        let identityDispatchData = identityBytes.withUnsafeBytes { ptr in
-            DispatchData(bytes: ptr)
-        }
-
-        sec_protocol_options_set_min_tls_protocol_version(secOptions, .TLSv13)
-        sec_protocol_options_add_pre_shared_key(
-            secOptions,
-            pskDispatchData as __DispatchData,
-            identityDispatchData as __DispatchData
-        )
-        sec_protocol_options_append_tls_ciphersuite(secOptions, .AES_128_GCM_SHA256)
-    }
-
-    private func derivePSKMaterial() -> Data {
-        let input = "codes.rambo.MultipeerKit.PSK.v1:\(configuration.serviceType)"
-        return Data(SHA256.hash(data: Data(input.utf8)))
     }
 
     // MARK: - Listener (advertiser)
@@ -182,16 +166,36 @@ final class MultipeerConnection: MultipeerProtocol {
                 "peer-id": me.id,
                 "peer-name": me.name
             ])
+            // Defer Bonjour registration until the listener has actually bound
+            // to a TCP port. Otherwise the advertised port can be stale or
+            // unbound on some OS versions, which matches the
+            // `Connection refused` symptom we've been chasing.
+            var serviceRegistered = false
 
-            listener.service = NWListener.Service(name: me.id, type: serviceType, txtRecord: txt)
-
-            listener.stateUpdateHandler = { [weak self] state in
-                guard let self = self else { return }
-                if case .failed(let error) = state {
+            listener.stateUpdateHandler = { [weak self, weak listener] state in
+                guard let self = self, let listener = listener else { return }
+                switch state {
+                case .ready:
+                    if !serviceRegistered {
+                        serviceRegistered = true
+                        listener.service = NWListener.Service(name: nil, type: serviceType, txtRecord: txt)
+                    }
+                    if let port = listener.port {
+                        os_log("Listener ready on port %{public}@", log: self.log, type: .info, String(describing: port))
+                    } else {
+                        os_log("Listener ready (no port)", log: self.log, type: .info)
+                    }
+                case .failed(let error):
                     os_log("Listener failed to start. Make sure your app's Info.plist contains NSLocalNetworkUsageDescription and NSBonjourServices entries. Error: %{public}@",
                            log: self.log,
                            type: .fault,
                            String(describing: error))
+                case .waiting(let error):
+                    os_log("Listener waiting: %{public}@", log: self.log, type: .info, String(describing: error))
+                case .cancelled:
+                    os_log("Listener cancelled", log: self.log, type: .info)
+                default:
+                    break
                 }
             }
 
@@ -207,7 +211,13 @@ final class MultipeerConnection: MultipeerProtocol {
     }
 
     private func handleIncomingConnection(_ nwConn: NWConnection) {
-        let conn = PeerConnection(connection: nwConn, isInitiator: false, queue: queue, log: log)
+        let conn = PeerConnection(
+            connection: nwConn,
+            isInitiator: false,
+            usesEncryption: usesApplicationLayerEncryption,
+            queue: queue,
+            log: log
+        )
         let key = ObjectIdentifier(conn)
         pendingIncomingConnections[key] = conn
 
@@ -273,6 +283,18 @@ final class MultipeerConnection: MultipeerProtocol {
                 let key = ObjectIdentifier(conn)
 
                 if decision {
+                    if conn.usesEncryption {
+                        guard let peerKey = hello.ephemeralPublicKey,
+                              conn.deriveSessionKey(fromPeerPublicKey: peerKey)
+                        else {
+                            os_log("Rejecting incoming connection: missing or invalid ephemeral key from peer %{public}@",
+                                   log: self.log, type: .error, peer.name)
+                            conn.sendReject()
+                            conn.cancel()
+                            self.pendingIncomingConnections[key] = nil
+                            return
+                        }
+                    }
                     conn.sendAccept()
                     self.pendingIncomingConnections[key] = nil
                     self.connections[peer.id] = conn
@@ -412,15 +434,22 @@ final class MultipeerConnection: MultipeerProtocol {
         }
         guard connections[peer.id] == nil else { return }
 
+        os_log("Initiating connection to peer %{public}@ at %{public}@", log: log, type: .info, peer.name, String(describing: endpoint))
+
         let nwConn = NWConnection(to: endpoint, using: makeParameters())
-        let conn = PeerConnection(connection: nwConn, isInitiator: true, queue: queue, log: log)
+        let conn = PeerConnection(
+            connection: nwConn,
+            isInitiator: true,
+            usesEncryption: usesApplicationLayerEncryption,
+            queue: queue,
+            log: log
+        )
         conn.peer = peer
         connections[peer.id] = conn
 
-        let helloPayload = HandshakeMessage(id: me.id, name: me.name, discoveryInfo: nil, context: context)
-
-        conn.didBecomeReady = { [weak conn] in
-            conn?.sendHello(helloPayload)
+        conn.didBecomeReady = { [weak self, weak conn] in
+            guard let self = self, let conn = conn else { return }
+            conn.sendHello(id: self.me.id, name: self.me.name, discoveryInfo: nil, context: context)
         }
 
         conn.didReceiveAccept = { [weak self] in

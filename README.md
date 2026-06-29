@@ -25,9 +25,12 @@ The Bonjour services key is an array of service types your app will browse for. 
 
 ## Encryption
 
-When `encryptionPreference` is `.required` (or the deprecated `.optional`) and you do **not** supply a `SecIdentity`, MultipeerKit automatically negotiates TLS 1.3 with a pre-shared key derived from the configuration's `serviceType`. This gives you encrypted transport with no certificate management.
+When `encryptionPreference` is `.required` (or the deprecated `.optional`):
 
-The PSK is shared by every peer that uses the same `serviceType`, so it protects against passive eavesdroppers on the local network but does *not* authenticate individual peers against each other. If you need per-peer authentication, supply your own `SecIdentity` via `MultipeerConfiguration.Security.identity` and MultipeerKit will use that instead.
+- If you supply a `SecIdentity` via `MultipeerConfiguration.Security.identity`, MultipeerKit configures TLS at the transport layer using that identity, just like the MultipeerConnectivity-based version did.
+- If you do **not** supply an identity, MultipeerKit performs its own ephemeral key exchange during the connection handshake: each side generates an X25519 key pair, the public keys are exchanged inside the HELLO/ACCEPT frames, both sides HKDF-derive a session key, and every subsequent application payload is sealed with ChaCha20-Poly1305. Each session uses a fresh key pair, so the channel has forward secrecy with no certificate management on your side.
+
+The application-layer mode encrypts message contents but does not authenticate the remote peer — anyone running the app with the same `serviceType` can connect and complete the key exchange. If you need per-peer authentication, supply a `SecIdentity` and MultipeerKit will use TLS instead.
 
 ## Migration notes
 
