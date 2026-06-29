@@ -3,32 +3,31 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DEAB3C4A240BF04100A1093C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAB3C49240BF04100A1093C /* AppDelegate.swift */; };
-		DEAB3C4C240BF04100A1093C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAB3C4B240BF04100A1093C /* SceneDelegate.swift */; };
-		DEAB3C4E240BF04100A1093C /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAB3C4D240BF04100A1093C /* ViewController.swift */; };
-		DEAB3C51240BF04100A1093C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DEAB3C4F240BF04100A1093C /* Main.storyboard */; };
-		DEAB3C53240BF04600A1093C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DEAB3C52240BF04600A1093C /* Assets.xcassets */; };
-		DEAB3C56240BF04600A1093C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DEAB3C54240BF04600A1093C /* LaunchScreen.storyboard */; };
 		DEAB3C61240C066800A1093C /* MultipeerKit in Frameworks */ = {isa = PBXBuildFile; productRef = DEAB3C60240C066800A1093C /* MultipeerKit */; };
-		DEAB3C63240C07E700A1093C /* PhotoPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAB3C62240C07E700A1093C /* PhotoPayload.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		DEAB3C46240BF04100A1093C /* RemoteCamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RemoteCamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		DEAB3C49240BF04100A1093C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		DEAB3C4B240BF04100A1093C /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		DEAB3C4D240BF04100A1093C /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		DEAB3C50240BF04100A1093C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		DEAB3C52240BF04600A1093C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		DEAB3C55240BF04600A1093C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		DEAB3C57240BF04600A1093C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DEAB3C5E240C04D300A1093C /* MultipeerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MultipeerKit; path = ../..; sourceTree = "<group>"; };
-		DEAB3C62240C07E700A1093C /* PhotoPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPayload.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F457C79B2FF302B900BEB3DF /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DEAB3C45240BF04100A1093C /* RemoteCamera */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		F457C7922FF302B900BEB3DF /* RemoteCamera */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F457C79B2FF302B900BEB3DF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = RemoteCamera; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		DEAB3C43240BF04100A1093C /* Frameworks */ = {
@@ -46,7 +45,7 @@
 			isa = PBXGroup;
 			children = (
 				DEAB3C5E240C04D300A1093C /* MultipeerKit */,
-				DEAB3C48240BF04100A1093C /* RemoteCamera */,
+				F457C7922FF302B900BEB3DF /* RemoteCamera */,
 				DEAB3C47240BF04100A1093C /* Products */,
 				DEAB3C5F240C066800A1093C /* Frameworks */,
 			);
@@ -58,21 +57,6 @@
 				DEAB3C46240BF04100A1093C /* RemoteCamera.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		DEAB3C48240BF04100A1093C /* RemoteCamera */ = {
-			isa = PBXGroup;
-			children = (
-				DEAB3C49240BF04100A1093C /* AppDelegate.swift */,
-				DEAB3C4B240BF04100A1093C /* SceneDelegate.swift */,
-				DEAB3C4D240BF04100A1093C /* ViewController.swift */,
-				DEAB3C62240C07E700A1093C /* PhotoPayload.swift */,
-				DEAB3C4F240BF04100A1093C /* Main.storyboard */,
-				DEAB3C52240BF04600A1093C /* Assets.xcassets */,
-				DEAB3C54240BF04600A1093C /* LaunchScreen.storyboard */,
-				DEAB3C57240BF04600A1093C /* Info.plist */,
-			);
-			path = RemoteCamera;
 			sourceTree = "<group>";
 		};
 		DEAB3C5F240C066800A1093C /* Frameworks */ = {
@@ -97,6 +81,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				F457C7922FF302B900BEB3DF /* RemoteCamera */,
+			);
 			name = RemoteCamera;
 			packageProductDependencies = (
 				DEAB3C60240C066800A1093C /* MultipeerKit */,
@@ -111,8 +98,9 @@
 		DEAB3C3E240BF04100A1093C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1130;
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 2700;
 				ORGANIZATIONNAME = "Oliver Michalak";
 				TargetAttributes = {
 					DEAB3C45240BF04100A1093C = {
@@ -143,9 +131,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEAB3C56240BF04600A1093C /* LaunchScreen.storyboard in Resources */,
-				DEAB3C53240BF04600A1093C /* Assets.xcassets in Resources */,
-				DEAB3C51240BF04100A1093C /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,33 +141,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEAB3C4E240BF04100A1093C /* ViewController.swift in Sources */,
-				DEAB3C63240C07E700A1093C /* PhotoPayload.swift in Sources */,
-				DEAB3C4A240BF04100A1093C /* AppDelegate.swift in Sources */,
-				DEAB3C4C240BF04100A1093C /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		DEAB3C4F240BF04100A1093C /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				DEAB3C50240BF04100A1093C /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		DEAB3C54240BF04600A1093C /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				DEAB3C55240BF04600A1093C /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		DEAB3C58240BF04600A1093C /* Debug */ = {
@@ -211,6 +173,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -221,6 +184,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -240,6 +204,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -271,6 +236,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -281,6 +247,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -293,6 +260,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -304,8 +272,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 6ZU459JA6J;
+				DEVELOPMENT_TEAM = 8C7439RJLG;
 				INFOPLIST_FILE = RemoteCamera/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -322,8 +292,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 6ZU459JA6J;
+				DEVELOPMENT_TEAM = 8C7439RJLG;
 				INFOPLIST_FILE = RemoteCamera/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
