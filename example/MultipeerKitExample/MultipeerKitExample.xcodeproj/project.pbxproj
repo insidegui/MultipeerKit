@@ -8,27 +8,25 @@
 
 /* Begin PBXBuildFile section */
 		DDADA096240A83B300842749 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA095240A83B300842749 /* AppDelegate.swift */; };
-		DDADA098240A83B300842749 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA097240A83B300842749 /* SceneDelegate.swift */; };
 		DDADA09A240A83B300842749 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA099240A83B300842749 /* ContentView.swift */; };
 		DDADA09C240A83B400842749 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDADA09B240A83B400842749 /* Assets.xcassets */; };
 		DDADA09F240A83B400842749 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDADA09E240A83B400842749 /* Preview Assets.xcassets */; };
-		DDADA0A2240A83B400842749 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDADA0A0240A83B400842749 /* LaunchScreen.storyboard */; };
 		DDADA0AC240A83FF00842749 /* MultipeerKit in Frameworks */ = {isa = PBXBuildFile; productRef = DDADA0AB240A83FF00842749 /* MultipeerKit */; };
 		DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA0AD240A844B00842749 /* ExamplePayload.swift */; };
+		DDBEEF01260000000000A001 /* MultipeerKitExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDBEEF02260000000000A002 /* MultipeerKitExampleApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		DD2DAF67240B04DF003D7A4D /* MultipeerKitExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MultipeerKitExample.entitlements; sourceTree = "<group>"; };
 		DDADA092240A83B300842749 /* MultipeerKitExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MultipeerKitExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDADA095240A83B300842749 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		DDADA097240A83B300842749 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		DDADA099240A83B300842749 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		DDADA09B240A83B400842749 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DDADA09E240A83B400842749 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		DDADA0A1240A83B400842749 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DDADA0A3240A83B400842749 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DDADA0A9240A83F800842749 /* MultipeerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MultipeerKit; path = ../..; sourceTree = "<group>"; };
 		DDADA0AD240A844B00842749 /* ExamplePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamplePayload.swift; sourceTree = "<group>"; };
+		DDBEEF02260000000000A002 /* MultipeerKitExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerKitExampleApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,12 +63,11 @@
 			isa = PBXGroup;
 			children = (
 				DD2DAF67240B04DF003D7A4D /* MultipeerKitExample.entitlements */,
-				DDADA0AD240A844B00842749 /* ExamplePayload.swift */,
+				DDBEEF02260000000000A002 /* MultipeerKitExampleApp.swift */,
 				DDADA095240A83B300842749 /* AppDelegate.swift */,
-				DDADA097240A83B300842749 /* SceneDelegate.swift */,
 				DDADA099240A83B300842749 /* ContentView.swift */,
+				DDADA0AD240A844B00842749 /* ExamplePayload.swift */,
 				DDADA09B240A83B400842749 /* Assets.xcassets */,
-				DDADA0A0240A83B400842749 /* LaunchScreen.storyboard */,
 				DDADA0A3240A83B400842749 /* Info.plist */,
 				DDADA09D240A83B400842749 /* Preview Content */,
 			);
@@ -154,7 +151,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DDADA0A2240A83B400842749 /* LaunchScreen.storyboard in Resources */,
 				DDADA09F240A83B400842749 /* Preview Assets.xcassets in Resources */,
 				DDADA09C240A83B400842749 /* Assets.xcassets in Resources */,
 			);
@@ -167,25 +163,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDBEEF01260000000000A001 /* MultipeerKitExampleApp.swift in Sources */,
 				DDADA096240A83B300842749 /* AppDelegate.swift in Sources */,
-				DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */,
-				DDADA098240A83B300842749 /* SceneDelegate.swift in Sources */,
 				DDADA09A240A83B300842749 /* ContentView.swift in Sources */,
+				DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		DDADA0A0240A83B400842749 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				DDADA0A1240A83B400842749 /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		DDADA0A4240A83B400842749 /* Debug */ = {
@@ -240,7 +225,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -297,7 +282,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;

@@ -11,7 +11,15 @@
       "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=visionOS' build)",
       "Bash(/usr/bin/grep IPHONEOS_DEPLOYMENT_TARGET *)",
       "Bash(/usr/bin/sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 13.4;/IPHONEOS_DEPLOYMENT_TARGET = 16.0;/g' /Users/insidegui/Developer/_projects/MultipeerKit/example/MultipeerKitExample/MultipeerKitExample.xcodeproj/project.pbxproj)",
-      "Bash(xcodebuild -project MultipeerKitExample.xcodeproj -scheme MultipeerKitExample -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO)"
+      "Bash(xcodebuild -project MultipeerKitExample.xcodeproj -scheme MultipeerKitExample -destination 'generic/platform=iOS' build CODE_SIGNING_ALLOWED=NO)",
+      "Bash(/usr/bin/cat /Users/insidegui/Developer/_projects/MultipeerKit/example/MultipeerKitExample/MultipeerKitExample.xcodeproj/project.pbxproj)",
+      "Bash(/usr/bin/head -180)",
+      "Bash(/usr/bin/sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 16.0;/IPHONEOS_DEPLOYMENT_TARGET = 17.0;/g' /Users/insidegui/Developer/_projects/MultipeerKit/example/MultipeerKitExample/MultipeerKitExample.xcodeproj/project.pbxproj)",
+      "Bash(/usr/bin/grep -E \"error:|warning:\")",
+      "Bash(/usr/bin/head -40)",
+      "Bash(/usr/bin/grep -E \"error:|warning:|BUILD\")",
+      "Bash(/usr/bin/head -30)",
+      "Bash(/usr/bin/tail -6)"
     ]
   }
 }
