@@ -36,12 +36,24 @@ public final class MultipeerTransceiver {
     /// All peers currently available for invitation, connection and data transmission.
     public private(set) var availablePeers: [Peer] = [] {
         didSet {
-            guard availablePeers != oldValue else { return }
+            // `Peer.==` is id-only by design, so the synthesized `[Peer] !=`
+            // would not notice an in-place `isConnected` flip. Compare the
+            // identity AND connection state of each element so that
+            // connect/disconnect updates always reach observers.
+            guard !arePeerArraysEquivalent(availablePeers, oldValue) else { return }
 
             DispatchQueue.main.async {
                 self.availablePeersDidChange(self.availablePeers)
             }
         }
+    }
+
+    private func arePeerArraysEquivalent(_ lhs: [Peer], _ rhs: [Peer]) -> Bool {
+        guard lhs.count == rhs.count else { return false }
+        for (a, b) in zip(lhs, rhs) {
+            if a.id != b.id || a.isConnected != b.isConnected { return false }
+        }
+        return true
     }
 
     /// Initializes a new transceiver.

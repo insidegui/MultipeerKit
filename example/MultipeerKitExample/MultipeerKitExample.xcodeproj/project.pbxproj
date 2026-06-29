@@ -3,31 +3,31 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DDADA096240A83B300842749 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA095240A83B300842749 /* AppDelegate.swift */; };
-		DDADA09A240A83B300842749 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA099240A83B300842749 /* ContentView.swift */; };
-		DDADA09C240A83B400842749 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDADA09B240A83B400842749 /* Assets.xcassets */; };
-		DDADA09F240A83B400842749 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDADA09E240A83B400842749 /* Preview Assets.xcassets */; };
 		DDADA0AC240A83FF00842749 /* MultipeerKit in Frameworks */ = {isa = PBXBuildFile; productRef = DDADA0AB240A83FF00842749 /* MultipeerKit */; };
-		DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDADA0AD240A844B00842749 /* ExamplePayload.swift */; };
-		DDBEEF01260000000000A001 /* MultipeerKitExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDBEEF02260000000000A002 /* MultipeerKitExampleApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		DD2DAF67240B04DF003D7A4D /* MultipeerKitExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MultipeerKitExample.entitlements; sourceTree = "<group>"; };
 		DDADA092240A83B300842749 /* MultipeerKitExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MultipeerKitExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		DDADA095240A83B300842749 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		DDADA099240A83B300842749 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		DDADA09B240A83B400842749 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		DDADA09E240A83B400842749 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		DDADA0A3240A83B400842749 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DDADA0A9240A83F800842749 /* MultipeerKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MultipeerKit; path = ../..; sourceTree = "<group>"; };
-		DDADA0AD240A844B00842749 /* ExamplePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamplePayload.swift; sourceTree = "<group>"; };
-		DDBEEF02260000000000A002 /* MultipeerKitExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerKitExampleApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F457C7872FF3027200BEB3DF /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DDADA091240A83B300842749 /* MultipeerKitExample */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		F457C77F2FF3027100BEB3DF /* MultipeerKitExample */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F457C7872FF3027200BEB3DF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MultipeerKitExample; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		DDADA08F240A83B300842749 /* Frameworks */ = {
@@ -45,7 +45,7 @@
 			isa = PBXGroup;
 			children = (
 				DDADA0A9240A83F800842749 /* MultipeerKit */,
-				DDADA094240A83B300842749 /* MultipeerKitExample */,
+				F457C77F2FF3027100BEB3DF /* MultipeerKitExample */,
 				DDADA093240A83B300842749 /* Products */,
 				DDADA0AA240A83FF00842749 /* Frameworks */,
 			);
@@ -57,29 +57,6 @@
 				DDADA092240A83B300842749 /* MultipeerKitExample.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		DDADA094240A83B300842749 /* MultipeerKitExample */ = {
-			isa = PBXGroup;
-			children = (
-				DD2DAF67240B04DF003D7A4D /* MultipeerKitExample.entitlements */,
-				DDBEEF02260000000000A002 /* MultipeerKitExampleApp.swift */,
-				DDADA095240A83B300842749 /* AppDelegate.swift */,
-				DDADA099240A83B300842749 /* ContentView.swift */,
-				DDADA0AD240A844B00842749 /* ExamplePayload.swift */,
-				DDADA09B240A83B400842749 /* Assets.xcassets */,
-				DDADA0A3240A83B400842749 /* Info.plist */,
-				DDADA09D240A83B400842749 /* Preview Content */,
-			);
-			path = MultipeerKitExample;
-			sourceTree = "<group>";
-		};
-		DDADA09D240A83B400842749 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				DDADA09E240A83B400842749 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 		DDADA0AA240A83FF00842749 /* Frameworks */ = {
@@ -103,6 +80,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F457C77F2FF3027100BEB3DF /* MultipeerKitExample */,
 			);
 			name = MultipeerKitExample;
 			packageProductDependencies = (
@@ -151,8 +131,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DDADA09F240A83B400842749 /* Preview Assets.xcassets in Resources */,
-				DDADA09C240A83B400842749 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,10 +141,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DDBEEF01260000000000A001 /* MultipeerKitExampleApp.swift in Sources */,
-				DDADA096240A83B300842749 /* AppDelegate.swift in Sources */,
-				DDADA09A240A83B300842749 /* ContentView.swift in Sources */,
-				DDADA0AE240A844B00842749 /* ExamplePayload.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
