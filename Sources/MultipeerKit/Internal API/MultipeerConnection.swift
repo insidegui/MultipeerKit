@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import CryptoKit
 import os.log
 
 /// The completion handler called when the remote peer responds to a manual invite initiated
@@ -129,12 +130,46 @@ final class MultipeerConnection: MultipeerProtocol {
         {
             sec_protocol_options_set_local_identity(options.securityProtocolOptions, secIdentity)
         } else {
-            os_log("encryptionPreference is .required but no SecIdentity was provided in MultipeerConfiguration.Security.identity. TLS handshakes will fail; set an identity or use .none encryption.",
-                   log: log,
-                   type: .fault)
+            configureEphemeralPSK(on: options)
         }
 
         return options
+    }
+
+    /// Installs a TLS 1.3 pre-shared key on the given options.
+    ///
+    /// The PSK is derived from the configuration's `serviceType` so that every
+    /// peer in the same MultipeerKit session agrees on the same key without any
+    /// user-supplied certificate material. This provides encryption against
+    /// passive eavesdroppers on the local network, but it does *not*
+    /// authenticate individual peers — anyone running the app with the same
+    /// `serviceType` knows the PSK. Apps that need per-peer authentication
+    /// should supply their own `SecIdentity` via `MultipeerConfiguration.Security.identity`.
+    private func configureEphemeralPSK(on tlsOptions: NWProtocolTLS.Options) {
+        let secOptions = tlsOptions.securityProtocolOptions
+
+        let pskBytes = derivePSKMaterial()
+        let identityBytes = Data("MultipeerKit".utf8)
+
+        let pskDispatchData = pskBytes.withUnsafeBytes { ptr in
+            DispatchData(bytes: ptr)
+        }
+        let identityDispatchData = identityBytes.withUnsafeBytes { ptr in
+            DispatchData(bytes: ptr)
+        }
+
+        sec_protocol_options_set_min_tls_protocol_version(secOptions, .TLSv13)
+        sec_protocol_options_add_pre_shared_key(
+            secOptions,
+            pskDispatchData as __DispatchData,
+            identityDispatchData as __DispatchData
+        )
+        sec_protocol_options_append_tls_ciphersuite(secOptions, .AES_128_GCM_SHA256)
+    }
+
+    private func derivePSKMaterial() -> Data {
+        let input = "codes.rambo.MultipeerKit.PSK.v1:\(configuration.serviceType)"
+        return Data(SHA256.hash(data: Data(input.utf8)))
     }
 
     // MARK: - Listener (advertiser)

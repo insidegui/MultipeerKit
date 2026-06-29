@@ -20,10 +20,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         var config = MultipeerConfiguration.default
         config.serviceType = "MPKitDemo"
 
-        // The Network framework's TLS support requires a SecIdentity for the
-        // listener side. Until this example supplies one, fall back to
-        // unencrypted transport so peers can actually connect.
-        config.security.encryptionPreference = .none
+        // With no SecIdentity supplied, MultipeerKit falls back to TLS 1.3
+        // with a PSK derived from the service type. That's enough to encrypt
+        // traffic on the local network without managing certificates.
+        config.security.encryptionPreference = .required
 
         let t = MultipeerTransceiver(configuration: config)
 

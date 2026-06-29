@@ -23,12 +23,18 @@ The Bonjour services key is an array of service types your app will browse for. 
 
 **If you do not configure the above keys properly, then MultipeerKit won't work.**
 
+## Encryption
+
+When `encryptionPreference` is `.required` (or the deprecated `.optional`) and you do **not** supply a `SecIdentity`, MultipeerKit automatically negotiates TLS 1.3 with a pre-shared key derived from the configuration's `serviceType`. This gives you encrypted transport with no certificate management.
+
+The PSK is shared by every peer that uses the same `serviceType`, so it protects against passive eavesdroppers on the local network but does *not* authenticate individual peers against each other. If you need per-peer authentication, supply your own `SecIdentity` via `MultipeerConfiguration.Security.identity` and MultipeerKit will use that instead.
+
 ## Migration notes
 
 If you're upgrading from the MultipeerConnectivity-based version:
 
 - `Peer.underlyingPeer` (an `MCPeerID`) is gone. Use `Peer.id` (a stable UUID) for identifying peers.
-- `MultipeerConfiguration.Security.encryptionPreference` now uses `MultipeerConfiguration.Security.EncryptionPreference` (`.none`, `.optional`, `.required`) instead of `MCEncryptionPreference`.
+- `MultipeerConfiguration.Security.encryptionPreference` now uses `MultipeerConfiguration.Security.EncryptionPreference` (`.none`, `.optional`, `.required`) instead of `MCEncryptionPreference`. `.optional` is deprecated because the Network framework cannot honour it distinctly.
 - `MultipeerConfiguration.Security.identity` is now `SecIdentity?` (was `[Any]?`). Intermediate certificates from the old API are not used.
 - Minimum platforms are now iOS 16, macOS 13, tvOS 16, and visionOS 1.
 
