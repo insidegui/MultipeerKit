@@ -1,5 +1,6 @@
 import Foundation
-import MultipeerConnectivity
+import Network
+import Security
 
 /// Configures several aspects of the multipeer communication.
 public struct MultipeerConfiguration {
@@ -13,30 +14,44 @@ public struct MultipeerConfiguration {
         /// Use `.custom` when you want to control the invitation of new peers to your session,
         /// but still invite them at the time of discovery.
         case custom((Peer) throws -> (context: Data, timeout: TimeInterval)?)
-        /// Use `.none` when you want to manually invite peers by calling ``MultipeerTransceiver/invite(_:with:timeout:completion:)``
+        /// Use `.none` when you want to manually invite peers by calling
+        /// ``MultipeerTransceiver/invite(_:with:timeout:completion:)``
         case none
     }
 
     /// Configures security-related aspects of the multipeer connection.
     public struct Security {
 
+        /// Encryption preference for the underlying network connections.
+        ///
+        /// Replaces `MCEncryptionPreference` from the deprecated MultipeerConnectivity API.
+        public enum EncryptionPreference {
+            /// No transport encryption is used. Connections are plain TCP.
+            case none
+            /// TLS is used when available.
+            ///
+            /// The underlying `Network` framework does not support a true "TLS if
+            /// available" mode — this case is currently treated the same as
+            /// ``required`` and is kept only for source compatibility.
+            /// Use ``required`` or ``none`` explicitly.
+            @available(*, deprecated, message: "Use .required or .none. The Network framework does not support optional TLS; this case currently behaves the same as .required.")
+            case optional
+            /// TLS is required. Connections that cannot negotiate TLS will fail.
+            case required
+        }
+
         public typealias InvitationHandler = (Peer, Data?, @escaping (Bool) -> Void) -> Void
 
-        /// An array of information that can be used to identify the peer to other nearby peers.
+        /// An optional identity used to authenticate the local peer during TLS handshakes.
         ///
-        /// The first object in this array should be a `SecIdentity` object that provides the local peer’s identity.
-        ///
-        /// The remainder of the array should contain zero or more additional SecCertificate objects that provide any
-        /// intermediate certificates that nearby peers might require when verifying the local peer’s identity.
-        /// These certificates should be sent in certificate chain order.
-        ///
-        /// Check Apple's `MCSession` docs for more information.
-        public var identity: [Any]?
+        /// When set, the identity is installed on the underlying `NWProtocolTLS` options
+        /// and presented to remote peers during connection setup.
+        public var identity: SecIdentity?
 
         /// Configure the level of encryption to be used for communications.
-        public var encryptionPreference: MCEncryptionPreference
+        public var encryptionPreference: EncryptionPreference
 
-        /// A custom closure to be used when handling invitations received by remote peers.
+        /// A custom closure to be used when handling invitations received from remote peers.
         ///
         /// It receives the `Peer` that sent the invitation, a custom `Data` value
         /// that's a context that can be used to customize the invitation,
@@ -45,8 +60,8 @@ public struct MultipeerConfiguration {
         /// The default implementation accepts all invitations.
         public var invitationHandler: InvitationHandler
 
-        public init(identity: [Any]?,
-                    encryptionPreference: MCEncryptionPreference,
+        public init(identity: SecIdentity?,
+                    encryptionPreference: EncryptionPreference,
                     invitationHandler: @escaping InvitationHandler)
         {
             self.identity = identity
@@ -58,13 +73,14 @@ public struct MultipeerConfiguration {
         public static let `default` = Security(identity: nil, encryptionPreference: .none, invitationHandler: { _, _, closure in
             closure(true)
         })
-
     }
 
     /// This must be the same accross your app running on multiple devices,
     /// it must be a short string.
     ///
-    /// Check Apple's docs on `MCNearbyServiceAdvertiser` for more info on the limitations for this field.
+    /// MultipeerKit advertises and browses for the Bonjour service `_<serviceType>._tcp`.
+    /// Service types must be 15 characters or fewer, contain only lowercase ASCII
+    /// letters, digits and hyphens, and must contain at least one letter.
     public var serviceType: String
 
     /// A display name for this peer that will be shown to nearby peers.
@@ -82,18 +98,6 @@ public struct MultipeerConfiguration {
     public var invitation: Invitation
 
     /// Creates a new configuration.
-    /// - Parameters:
-    ///   - serviceType: This must be the same accross your app running on multiple devices,
-    ///   it must be a short string.
-    ///   Check Apple's docs on `MCNearbyServiceAdvertiser` for more info on the limitations for this field.
-    ///   - peerName: A display name for this peer that will be shown to nearby peers.
-    ///   - defaults: An instance of `UserDefaults` that's used to store this peer's identity so that it
-    ///   remains stable between different sessions. If you use MultipeerKit in app extension
-    ///   make sure to use a shared app group if you wish to maintain a stable identity.
-    ///   - security: The security configuration.
-    ///   - invitation: Defines how the multipeer connection handles newly discovered peers.
-    ///   New peers can be invited automatically, invited with a custom context
-    ///   or not invited at all, in which case you must invite them manually.
     public init(serviceType: String,
                 peerName: String,
                 defaults: UserDefaults,
@@ -113,7 +117,7 @@ public struct MultipeerConfiguration {
     /// display name, `UserDefaults.standard`, the default security configuration and automatic invitation.
     public static let `default` = MultipeerConfiguration(
         serviceType: "MKSVC",
-        peerName: MCPeerID.defaultDisplayName,
+        peerName: LocalPeerIdentity.defaultDisplayName,
         defaults: .standard,
         security: .default,
         invitation: .automatic

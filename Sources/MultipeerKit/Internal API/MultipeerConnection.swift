@@ -1,5 +1,5 @@
 import Foundation
-import MultipeerConnectivity
+import Network
 import os.log
 
 /// The completion handler called when the remote peer responds to a manual invite initiated
@@ -8,9 +8,13 @@ public typealias InvitationCompletionHandler = (_ result: Result<Peer, Error>) -
 
 public struct MultipeerError: LocalizedError {
     public var localizedDescription: String
+
+    public init(localizedDescription: String) {
+        self.localizedDescription = localizedDescription
+    }
 }
 
-final class MultipeerConnection: NSObject, MultipeerProtocol {
+final class MultipeerConnection: MultipeerProtocol {
 
     enum Mode: Int, CaseIterable {
         case receiver
@@ -21,13 +25,27 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
 
     let modes: [Mode]
     let configuration: MultipeerConfiguration
-    let me: MCPeerID
+    let me: LocalPeerIdentity
 
-    init(modes: [Mode] = Mode.allCases, configuration: MultipeerConfiguration = .default) {
-        self.modes = modes
-        self.configuration = configuration
-        self.me = MCPeerID.fetchOrCreate(with: configuration)
-    }
+    private let queue = DispatchQueue(label: "codes.rambo.MultipeerKit.connection")
+
+    private var browser: NWBrowser?
+    private var listener: NWListener?
+
+    /// All peers we currently know about (browsed or seen via incoming connection),
+    /// keyed by their stable peer id.
+    private var discoveredPeers: [String: Peer] = [:]
+
+    /// Active connections (post-handshake or in-progress) keyed by peer id.
+    private var connections: [String: PeerConnection] = [:]
+
+    /// Incoming connections we've accepted from the listener but haven't yet
+    /// received a hello frame for. They're indexed by `ObjectIdentifier` because
+    /// the peer id is not known until the hello frame arrives.
+    private var pendingIncomingConnections: [ObjectIdentifier: PeerConnection] = [:]
+
+    /// Completion handlers for manually-issued invites, keyed by peer id.
+    private var invitationCompletions: [String: InvitationCompletionHandler] = [:]
 
     var didReceiveData: ((Data, Peer) -> Void)?
     var didFindPeer: ((Peer) -> Void)?
@@ -35,221 +53,436 @@ final class MultipeerConnection: NSObject, MultipeerProtocol {
     var didConnectToPeer: ((Peer) -> Void)?
     var didDisconnectFromPeer: ((Peer) -> Void)?
 
-    private var discoveredPeers: [MCPeerID: Peer] = [:]
+    init(modes: [Mode] = Mode.allCases, configuration: MultipeerConfiguration = .default) {
+        self.modes = modes
+        self.configuration = configuration
+        self.me = LocalPeerIdentity.fetchOrCreate(with: configuration)
+    }
+
+    // MARK: - Lifecycle
 
     func resume() {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        if modes.contains(.transmitter) {
-            // Ideally, we'd just keep using the same browser for the lifetime of the MultipeerConnection object.
-            // However, due to #12, we can't. The same process is done with the advertiser for consistency.
-            browser = makeBrowser()
-            browser.startBrowsingForPeers()
-        }
-        if modes.contains(.receiver) {
-            advertiser = makeAdvertiser()
-            advertiser.startAdvertisingPeer()
+        let serviceType = bonjourServiceType
+
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            if self.modes.contains(.receiver) {
+                self.startListener(serviceType: serviceType)
+            }
+            if self.modes.contains(.transmitter) {
+                self.startBrowser(serviceType: serviceType)
+            }
         }
     }
 
     func stop() {
         os_log("%{public}@", log: log, type: .debug, #function)
 
-        if modes.contains(.receiver) {
-            advertiser.stopAdvertisingPeer()
+        queue.async { [weak self] in
+            guard let self = self else { return }
+
+            self.listener?.cancel()
+            self.listener = nil
+            self.browser?.cancel()
+            self.browser = nil
+
+            for (_, conn) in self.connections { conn.cancel() }
+            self.connections.removeAll()
+
+            for (_, conn) in self.pendingIncomingConnections { conn.cancel() }
+            self.pendingIncomingConnections.removeAll()
+
+            self.discoveredPeers.removeAll()
+            self.invitationCompletions.removeAll()
         }
-        if modes.contains(.transmitter) {
-            browser.stopBrowsingForPeers()
+    }
+
+    private var bonjourServiceType: String {
+        "_\(configuration.serviceType)._tcp"
+    }
+
+    // MARK: - Networking parameters
+
+    private func makeParameters() -> NWParameters {
+        let parameters: NWParameters
+
+        switch configuration.security.encryptionPreference {
+        case .none:
+            parameters = NWParameters(tls: nil, tcp: NWProtocolTCP.Options())
+        default:
+            // Covers both .required and the deprecated .optional, which the
+            // Network framework cannot honour distinctly.
+            parameters = NWParameters(tls: makeTLSOptions(), tcp: NWProtocolTCP.Options())
+        }
+
+        parameters.includePeerToPeer = true
+        return parameters
+    }
+
+    private func makeTLSOptions() -> NWProtocolTLS.Options {
+        let options = NWProtocolTLS.Options()
+
+        if let identity = configuration.security.identity,
+           let secIdentity = sec_identity_create(identity)
+        {
+            sec_protocol_options_set_local_identity(options.securityProtocolOptions, secIdentity)
+        }
+
+        return options
+    }
+
+    // MARK: - Listener (advertiser)
+
+    private func startListener(serviceType: String) {
+        do {
+            let listener = try NWListener(using: makeParameters())
+
+            let txt = NWTXTRecord([
+                "peer-id": me.id,
+                "peer-name": me.name
+            ])
+
+            listener.service = NWListener.Service(name: me.id, type: serviceType, txtRecord: txt)
+
+            listener.stateUpdateHandler = { [weak self] state in
+                guard let self = self else { return }
+                if case .failed(let error) = state {
+                    os_log("Listener failed to start. Make sure your app's Info.plist contains NSLocalNetworkUsageDescription and NSBonjourServices entries. Error: %{public}@",
+                           log: self.log,
+                           type: .fault,
+                           String(describing: error))
+                }
+            }
+
+            listener.newConnectionHandler = { [weak self] nwConn in
+                self?.handleIncomingConnection(nwConn)
+            }
+
+            self.listener = listener
+            listener.start(queue: queue)
+        } catch {
+            os_log("Failed to create listener: %{public}@", log: log, type: .fault, String(describing: error))
         }
     }
 
-    private lazy var session: MCSession = {
-        let s = MCSession(
-            peer: me,
-            securityIdentity: configuration.security.identity,
-            encryptionPreference: configuration.security.encryptionPreference
-        )
+    private func handleIncomingConnection(_ nwConn: NWConnection) {
+        let conn = PeerConnection(connection: nwConn, isInitiator: false, queue: queue, log: log)
+        let key = ObjectIdentifier(conn)
+        pendingIncomingConnections[key] = conn
 
-        s.delegate = self
+        conn.didReceiveHello = { [weak self, weak conn] hello in
+            guard let self = self, let conn = conn else { return }
+            self.handleHelloReceived(on: conn, hello: hello)
+        }
 
-        return s
-    }()
+        conn.didDisconnect = { [weak self, weak conn] in
+            guard let self = self, let conn = conn else { return }
+            self.pendingIncomingConnections[key] = nil
+            if let peerID = conn.peer?.id {
+                self.handleConnectionLost(peerID: peerID)
+            }
+        }
 
-    private func makeBrowser() -> MCNearbyServiceBrowser {
-        let b = MCNearbyServiceBrowser(peer: me, serviceType: configuration.serviceType)
+        conn.didReceiveData = { [weak self, weak conn] data in
+            guard let self = self, let conn = conn, let peer = conn.peer else { return }
+            self.didReceiveData?(data, peer)
+        }
 
-        b.delegate = self
-
-        return b
+        conn.start()
     }
 
-    private lazy var browser: MCNearbyServiceBrowser = { makeBrowser() }()
+    private func handleHelloReceived(on conn: PeerConnection, hello: HandshakeMessage) {
+        let peer = Peer(id: hello.id, name: hello.name, discoveryInfo: hello.discoveryInfo, endpoint: nil, isConnected: false)
+        conn.peer = peer
 
-    private func makeAdvertiser() -> MCNearbyServiceAdvertiser {
-        let a = MCNearbyServiceAdvertiser(peer: me, discoveryInfo: nil, serviceType: configuration.serviceType)
+        if discoveredPeers[hello.id] == nil {
+            discoveredPeers[hello.id] = peer
+            didFindPeer?(peer)
+        }
 
-        a.delegate = self
+        configuration.security.invitationHandler(peer, hello.context, { [weak self, weak conn] decision in
+            guard let self = self else { return }
+            self.queue.async {
+                guard let conn = conn else { return }
+                let key = ObjectIdentifier(conn)
 
-        return a
+                if decision {
+                    conn.sendAccept()
+                    self.pendingIncomingConnections[key] = nil
+
+                    if let existing = self.connections[peer.id], existing !== conn {
+                        existing.cancel()
+                    }
+
+                    self.connections[peer.id] = conn
+                    self.markConnected(peer.id)
+                } else {
+                    conn.sendReject()
+                    conn.cancel()
+                    self.pendingIncomingConnections[key] = nil
+                }
+            }
+        })
     }
-    
-    private lazy var advertiser: MCNearbyServiceAdvertiser = { makeAdvertiser() }()
 
-    func broadcast(_ data: Data) throws {
-        guard !session.connectedPeers.isEmpty else {
-            os_log("Not broadcasting message: no connected peers", log: self.log, type: .error)
+    // MARK: - Browser
+
+    private func startBrowser(serviceType: String) {
+        let descriptor = NWBrowser.Descriptor.bonjourWithTXTRecord(type: serviceType, domain: nil)
+        let browser = NWBrowser(for: descriptor, using: makeParameters())
+
+        browser.stateUpdateHandler = { [weak self] state in
+            guard let self = self else { return }
+            if case .failed(let error) = state {
+                os_log("Browser failed to start. Make sure your app's Info.plist contains NSLocalNetworkUsageDescription and NSBonjourServices entries. Error: %{public}@",
+                       log: self.log,
+                       type: .fault,
+                       String(describing: error))
+            }
+        }
+
+        browser.browseResultsChangedHandler = { [weak self] _, changes in
+            guard let self = self else { return }
+            for change in changes {
+                switch change {
+                case .added(let result):
+                    self.handleBrowserAdded(result)
+                case .removed(let result):
+                    self.handleBrowserRemoved(result)
+                case .changed(_, let new, _):
+                    self.handleBrowserAdded(new)
+                case .identical:
+                    break
+                @unknown default:
+                    break
+                }
+            }
+        }
+
+        self.browser = browser
+        browser.start(queue: queue)
+    }
+
+    private func handleBrowserAdded(_ result: NWBrowser.Result) {
+        guard let info = parseTXT(result.metadata) else {
+            os_log("Discovered result without expected TXT record, ignoring", log: log, type: .debug)
             return
         }
+        // Ignore our own advertisement.
+        guard info.id != me.id else { return }
 
-        try session.send(data, toPeers: session.connectedPeers, with: .reliable)
+        let peer = Peer(id: info.id,
+                        name: info.name,
+                        discoveryInfo: info.extra,
+                        endpoint: result.endpoint,
+                        isConnected: discoveredPeers[info.id]?.isConnected ?? false)
+
+        let isNew = discoveredPeers[info.id] == nil
+        discoveredPeers[info.id] = peer
+
+        if isNew {
+            didFindPeer?(peer)
+        }
+
+        // Don't auto-initiate if we already have a live or in-flight connection.
+        guard connections[info.id] == nil else { return }
+
+        switch configuration.invitation {
+        case .automatic:
+            initiateConnection(to: peer, context: nil, timeout: 10.0)
+        case .custom(let inviter):
+            do {
+                if let invite = try inviter(peer) {
+                    initiateConnection(to: peer, context: invite.context, timeout: invite.timeout)
+                } else {
+                    os_log("Custom invite handler chose not to invite peer %{public}@", log: log, type: .debug, peer.name)
+                }
+            } catch {
+                os_log("Custom invite handler threw: %{public}@", log: log, type: .error, String(describing: error))
+            }
+        case .none:
+            os_log("Auto-invite disabled", log: log, type: .debug)
+        }
+    }
+
+    private func handleBrowserRemoved(_ result: NWBrowser.Result) {
+        guard let info = parseTXT(result.metadata) else { return }
+        guard let peer = discoveredPeers[info.id] else { return }
+
+        if let conn = connections[info.id] {
+            conn.cancel()
+            connections[info.id] = nil
+        }
+
+        discoveredPeers[info.id] = nil
+        didLosePeer?(peer)
+    }
+
+    private func parseTXT(_ metadata: NWBrowser.Result.Metadata) -> (id: String, name: String, extra: [String: String]?)? {
+        guard case .bonjour(let record) = metadata else { return nil }
+
+        var id: String?
+        var name: String?
+        var extra: [String: String] = [:]
+
+        for (key, value) in record {
+            guard case .string(let stringValue) = value else { continue }
+            switch key {
+            case "peer-id": id = stringValue
+            case "peer-name": name = stringValue
+            default: extra[key] = stringValue
+            }
+        }
+
+        guard let id = id, let name = name else { return nil }
+        return (id, name, extra.isEmpty ? nil : extra)
+    }
+
+    // MARK: - Outbound connections
+
+    private func initiateConnection(to peer: Peer, context: Data?, timeout: TimeInterval) {
+        guard let endpoint = peer.endpoint else {
+            os_log("Cannot initiate connection to peer %{public}@ without an endpoint", log: log, type: .error, peer.name)
+            if let completion = invitationCompletions[peer.id] {
+                completion(.failure(MultipeerError(localizedDescription: "Peer endpoint not known.")))
+                invitationCompletions[peer.id] = nil
+            }
+            return
+        }
+        guard connections[peer.id] == nil else { return }
+
+        let nwConn = NWConnection(to: endpoint, using: makeParameters())
+        let conn = PeerConnection(connection: nwConn, isInitiator: true, queue: queue, log: log)
+        conn.peer = peer
+        connections[peer.id] = conn
+
+        let helloPayload = HandshakeMessage(id: me.id, name: me.name, discoveryInfo: nil, context: context)
+
+        conn.didBecomeReady = { [weak conn] in
+            conn?.sendHello(helloPayload)
+        }
+
+        conn.didReceiveAccept = { [weak self] in
+            self?.handleInvitationAccepted(peerID: peer.id)
+        }
+
+        conn.didReceiveReject = { [weak self] in
+            self?.handleInvitationRejected(peerID: peer.id)
+        }
+
+        conn.didReceiveData = { [weak self, weak conn] data in
+            guard let self = self, let conn = conn, let peer = conn.peer else { return }
+            self.didReceiveData?(data, peer)
+        }
+
+        conn.didDisconnect = { [weak self] in
+            self?.handleConnectionLost(peerID: peer.id)
+        }
+
+        conn.start()
+
+        queue.asyncAfter(deadline: .now() + timeout) { [weak self, weak conn] in
+            guard let self = self, let conn = conn else { return }
+            guard !conn.isHandshakeComplete else { return }
+
+            os_log("Invitation to peer %{public}@ timed out", log: self.log, type: .error, peer.name)
+            conn.cancel()
+            self.connections[peer.id] = nil
+
+            if let completion = self.invitationCompletions.removeValue(forKey: peer.id) {
+                completion(.failure(MultipeerError(localizedDescription: "Invitation timed out.")))
+            }
+        }
+    }
+
+    private func handleInvitationAccepted(peerID: String) {
+        markConnected(peerID)
+
+        if let completion = invitationCompletions.removeValue(forKey: peerID),
+           let peer = discoveredPeers[peerID]
+        {
+            completion(.success(peer))
+        }
+    }
+
+    private func handleInvitationRejected(peerID: String) {
+        if let conn = connections.removeValue(forKey: peerID) {
+            conn.cancel()
+        }
+
+        if let completion = invitationCompletions.removeValue(forKey: peerID) {
+            completion(.failure(MultipeerError(localizedDescription: "Invitation rejected.")))
+        }
+    }
+
+    private func handleConnectionLost(peerID: String) {
+        connections[peerID] = nil
+
+        guard var peer = discoveredPeers[peerID] else { return }
+
+        if peer.isConnected {
+            peer.isConnected = false
+            discoveredPeers[peerID] = peer
+            didDisconnectFromPeer?(peer)
+        }
+    }
+
+    private func markConnected(_ peerID: String) {
+        guard var peer = discoveredPeers[peerID] else { return }
+        guard !peer.isConnected else { return }
+
+        peer.isConnected = true
+        discoveredPeers[peerID] = peer
+        didConnectToPeer?(peer)
+    }
+
+    // MARK: - Sending
+
+    func broadcast(_ data: Data) throws {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+
+            let active = self.connections.values.filter { $0.isHandshakeComplete }
+            guard !active.isEmpty else {
+                os_log("Not broadcasting message: no connected peers", log: self.log, type: .error)
+                return
+            }
+
+            for conn in active {
+                conn.sendData(data)
+            }
+        }
     }
 
     func send(_ data: Data, to peers: [Peer]) throws {
-        let ids = peers.map { $0.underlyingPeer }
-        try session.send(data, toPeers: ids, with: .reliable)
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            for peer in peers {
+                guard let conn = self.connections[peer.id], conn.isHandshakeComplete else { continue }
+                conn.sendData(data)
+            }
+        }
     }
 
-    private var invitationCompletionHandlers: [MCPeerID: InvitationCompletionHandler] = [:]
+    // MARK: - Public API
 
     func invite(_ peer: Peer, with context: Data?, timeout: TimeInterval, completion: InvitationCompletionHandler?) {
-        invitationCompletionHandlers[peer.underlyingPeer] = completion
+        queue.async { [weak self] in
+            guard let self = self else { return }
 
-        browser.invitePeer(peer.underlyingPeer, to: session, withContext: context, timeout: timeout)
+            if let completion = completion {
+                self.invitationCompletions[peer.id] = completion
+            }
+
+            let target = self.discoveredPeers[peer.id] ?? peer
+            self.initiateConnection(to: target, context: context, timeout: timeout)
+        }
     }
-    
+
     func getLocalPeer() -> Peer? {
-        return try? Peer(peer: me, discoveryInfo: nil)
-    }
-
-}
-
-// MARK: - Session delegate
-
-extension MultipeerConnection: MCSessionDelegate {
-
-    func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
-        os_log("%{public}@", log: log, type: .debug, #function)
-
-        DispatchQueue.main.async {
-            guard let peer = self.discoveredPeers[peerID] else { return }
-    
-            let handler = self.invitationCompletionHandlers[peerID]
-    
-            switch state {
-            case .connected:
-                handler?(.success(peer))
-                self.invitationCompletionHandlers[peerID] = nil
-                self.didConnectToPeer?(peer)
-            case .notConnected:
-                handler?(.failure(MultipeerError(localizedDescription: "Failed to connect to peer.")))
-                self.invitationCompletionHandlers[peerID] = nil
-                self.didDisconnectFromPeer?(peer)
-            case .connecting:
-                break
-            @unknown default:
-                break
-            }
-        }
-    }
-
-    func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-        os_log("%{public}@", log: log, type: .debug, #function)
-
-        if let peer = try? Peer(peer: peerID, discoveryInfo: nil) {
-            didReceiveData?(data, peer)
-        } else {
-            os_log("Received data, but cannot create peer for %s", log: log, type: .error, #function, peerID.displayName)
-        }
-    }
-
-    func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
-        os_log("%{public}@", log: log, type: .debug, #function)
-    }
-
-    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
-        os_log("%{public}@", log: log, type: .debug, #function)
-    }
-
-    func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
-        os_log("%{public}@", log: log, type: .debug, #function)
-    }
-
-}
-
-// MARK: - Browser delegate
-
-extension MultipeerConnection: MCNearbyServiceBrowserDelegate {
-
-    func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) {
-        os_log("%{public}@", log: log, type: .debug, #function)
-
-        do {
-            let peer = try Peer(peer: peerID, discoveryInfo: info)
-
-            discoveredPeers[peerID] = peer
-
-            didFindPeer?(peer)
-
-            switch configuration.invitation {
-            case .automatic:
-                browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10.0)
-            case .custom(let inviter):
-                guard let invite = try inviter(peer) else {
-                    os_log("Custom invite not sent for peer %@", log: self.log, type: .error, String(describing: peer))
-                    return
-                }
-
-                browser.invitePeer(
-                    peerID,
-                    to: session,
-                    withContext: invite.context,
-                    timeout: invite.timeout
-                )
-            case .none:
-                os_log("Auto-invite disabled", log: self.log, type: .debug)
-                return
-            }
-        } catch {
-            os_log("Failed to initialize peer based on peer ID %@: %{public}@", log: self.log, type: .error, String(describing: peerID), String(describing: error))
-        }
-    }
-
-    func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-        os_log("%{public}@", log: log, type: .debug, #function)
-
-        guard let peer = discoveredPeers[peerID] else { return }
-
-        didLosePeer?(peer)
-
-        discoveredPeers[peerID] = nil
-    }
-
-    func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
-        os_log("The multipeer connection failed to start browsing for peers. This could be due to missing keys in your app's Info.plist, check out the documentation at http://github.com/insidegui/MultipeerKit for more information. Error: %{public}@", log: log, type: .fault, String(describing: error))
-    }
-
-}
-
-// MARK: - Advertiser delegate
-
-extension MultipeerConnection: MCNearbyServiceAdvertiserDelegate {
-
-    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
-        os_log("%{public}@", log: log, type: .debug, #function)
-
-        DispatchQueue.main.async {
-            guard let peer = self.discoveredPeers[peerID] else { return }
-
-            self.configuration.security.invitationHandler(peer, context, { [weak self] decision in
-                guard let self = self else { return }
-
-                invitationHandler(decision, decision ? self.session : nil)
-            })
-        }
-    }
-
-    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
-        os_log("The multipeer connection failed to start advertising to peers. This could be due to missing keys in your app's Info.plist, check out the documentation at http://github.com/insidegui/MultipeerKit for more information. Error: %{public}@", log: log, type: .fault, String(describing: error))
+        return Peer(id: me.id, name: me.name, discoveryInfo: nil, endpoint: nil, isConnected: true)
     }
 
 }

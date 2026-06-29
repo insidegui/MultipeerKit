@@ -1,5 +1,4 @@
 import Foundation
-import MultipeerConnectivity.MCPeerID
 import os.log
 
 /// Handles all aspects related to the multipeer communication.
@@ -20,11 +19,11 @@ public final class MultipeerTransceiver {
 
     /// Called on the main queue when a connection is established with a peer.
     public var peerConnected: (Peer) -> Void = { _ in }
-    
+
     /// Called on the main queue when the connection with a peer is interrupted.
     public var peerDisconnected: (Peer) -> Void = { _ in }
-    
-    /// The current device's peer id
+
+    /// The current device's peer id.
     public var localPeer: Peer? {
         return connection.getLocalPeer()
     }
@@ -127,7 +126,7 @@ public final class MultipeerTransceiver {
     ///   - peers: An array of peers to send the message to.
     public func send<T: Encodable>(_ payload: T, to peers: [Peer]) {
         MultipeerMessage.register(T.self, for: String(describing: T.self))
-        
+
         do {
             let message = MultipeerMessage(type: String(describing: T.self), payload: payload)
 
@@ -177,7 +176,7 @@ public final class MultipeerTransceiver {
     }
 
     private func handlePeerRemoved(_ peer: Peer) {
-        guard let idx = availablePeers.firstIndex(where: { $0.underlyingPeer == peer.underlyingPeer }) else { return }
+        guard let idx = availablePeers.firstIndex(where: { $0.id == peer.id }) else { return }
 
         availablePeers.remove(at: idx)
         peerRemoved(peer)
@@ -185,18 +184,18 @@ public final class MultipeerTransceiver {
 
     private func handlePeerConnected(_ peer: Peer) {
         setConnected(true, on: peer)
-        
+
         peerConnected(peer)
     }
 
     private func handlePeerDisconnected(_ peer: Peer) {
         setConnected(false, on: peer)
-        
+
         peerDisconnected(peer)
     }
 
     private func setConnected(_ connected: Bool, on peer: Peer) {
-        guard let idx = availablePeers.firstIndex(where: { $0.underlyingPeer == peer.underlyingPeer }) else { return }
+        guard let idx = availablePeers.firstIndex(where: { $0.id == peer.id }) else { return }
 
         var mutablePeer = availablePeers[idx]
         mutablePeer.isConnected = connected

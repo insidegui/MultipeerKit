@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(swift build *)",
+      "Bash(swift test *)",
+      "Bash(xcrun --sdk iphoneos --show-sdk-path)",
+      "Bash(xcodebuild -version)",
+      "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=iOS' -quiet build)",
+      "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=iOS' build)",
+      "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=tvOS' build)",
+      "Bash(xcodebuild -scheme MultipeerKit -destination 'generic/platform=visionOS' build)"
+    ]
+  }
+}

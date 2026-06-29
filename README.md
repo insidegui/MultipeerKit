@@ -1,6 +1,8 @@
 # MultipeerKit
 
-A high-level abstraction built on top of the MultipeerConnectivity framework, which allows iOS, macOS and tvOS devices to exchange data between them over Wi-Fi networks, peer-to-peer Wi-Fi, and Bluetooth.
+A high-level abstraction built on top of Apple's Network framework, which allows iOS, macOS, tvOS and visionOS devices to discover each other over Bonjour and exchange `Codable` payloads over peer-to-peer TCP connections.
+
+> MultipeerKit was originally built on top of MultipeerConnectivity, which Apple has deprecated. The public API is largely the same; see "Migration notes" below for the small differences.
 
 ## Sample app
 
@@ -10,15 +12,25 @@ Check the example folder for a sample implementation.
 
 ## Info.plist configuration
 
-In order for MultipeerKit to work when running on iOS 14, you will have to include two keys in your app's Info.plist file.
+MultipeerKit uses the local network to discover and connect to peers, so your app must include the following keys in its `Info.plist`:
 
-The keys are `Privacy - Local Network Usage Description` (`NSLocalNetworkUsageDescription`) and `Bonjour services` (`NSBonjourServices`).
+- `Privacy - Local Network Usage Description` (`NSLocalNetworkUsageDescription`)
+- `Bonjour services` (`NSBonjourServices`)
 
 For the privacy key, include a human-readable description of what benefit the user gets by allowing your app to access devices on the local network.
 
-The Bonjour services key is an array of service types that your app will browse for. For MultipeerKit, the entry should be in the format `_servicename._tcp`, where `servicename` is the `serviceType` you've set in your `MultipeerConfiguration`. If you're using the default configuration, the value of this key should be `_MKSVC._tcp`.
+The Bonjour services key is an array of service types your app will browse for. For MultipeerKit, the entry should be in the format `_servicename._tcp`, where `servicename` is the `serviceType` you've set in your `MultipeerConfiguration`. If you're using the default configuration, the value of this key should be `_MKSVC._tcp`.
 
 **If you do not configure the above keys properly, then MultipeerKit won't work.**
+
+## Migration notes
+
+If you're upgrading from the MultipeerConnectivity-based version:
+
+- `Peer.underlyingPeer` (an `MCPeerID`) is gone. Use `Peer.id` (a stable UUID) for identifying peers.
+- `MultipeerConfiguration.Security.encryptionPreference` now uses `MultipeerConfiguration.Security.EncryptionPreference` (`.none`, `.optional`, `.required`) instead of `MCEncryptionPreference`.
+- `MultipeerConfiguration.Security.identity` is now `SecIdentity?` (was `[Any]?`). Intermediate certificates from the old API are not used.
+- Minimum platforms are now iOS 16, macOS 13, tvOS 16, and visionOS 1.
 
 ## Usage
 

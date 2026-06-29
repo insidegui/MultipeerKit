@@ -1,11 +1,8 @@
 import Foundation
-import MultipeerConnectivity.MCPeerID
-import CommonCrypto
+import Network
 
 /// Represents a remote peer.
 public struct Peer: Hashable, Identifiable {
-
-    let underlyingPeer: MCPeerID
 
     /// The unique identifier for the peer.
     public let id: String
@@ -19,35 +16,29 @@ public struct Peer: Hashable, Identifiable {
     /// `true` if we are currently connected to this peer.
     public internal(set) var isConnected: Bool
 
-}
+    /// The network endpoint used to reach this peer. `nil` for the local peer
+    /// and for peers that were not discovered via the network browser (for
+    /// example, peers materialized from an incoming connection's hello frame).
+    var endpoint: NWEndpoint?
 
-extension Peer {
-
-    init(peer: MCPeerID, discoveryInfo: [String: String]?) throws {
-        /**
-         According to Apple's docs, every MCPeerID is unique, therefore encoding it
-         and hashing the resulting data is a good way to generate an unique identifier
-         that will be always the same for the same peer ID.
-         */
-        let peerData = try NSKeyedArchiver.archivedData(withRootObject: peer, requiringSecureCoding: true)
-        self.id = peerData.idHash
-
-        self.underlyingPeer = peer
-        self.name = peer.displayName
+    init(id: String,
+         name: String,
+         discoveryInfo: [String: String]?,
+         endpoint: NWEndpoint? = nil,
+         isConnected: Bool = false)
+    {
+        self.id = id
+        self.name = name
         self.discoveryInfo = discoveryInfo
-        self.isConnected = false
+        self.endpoint = endpoint
+        self.isConnected = isConnected
     }
 
-}
-
-fileprivate extension Data {
-
-    var idHash: String {
-        var sha1 = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
-
-        withUnsafeBytes { _ = CC_SHA1($0.baseAddress, CC_LONG(count), &sha1) }
-
-        return sha1.map({ String(format: "%02hhx", $0) }).joined()
+    public static func == (lhs: Peer, rhs: Peer) -> Bool {
+        lhs.id == rhs.id
     }
 
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
